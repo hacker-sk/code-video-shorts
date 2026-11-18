@@ -5,6 +5,7 @@
 //
 // Size, frame rate and length come from video.json in the current folder ({"width":1080,"height":1920,"fps":30,"duration":10}).
 // The video and the stills share it, so stills can't come out landscape while the video is portrait; command-line flags override it.
+// If timing.json (from tts.mjs) is in the folder, its total replaces the duration and its per-line seconds are given to the page as window.__TIMING, so the video follows the voice-over.
 // Usage:
 //   node <skill>/scripts/render.mjs index.html video.mp4 [--audio music.wav]
 //   node <skill>/scripts/render.mjs index.html --stills 0,0.5,2.5,4.5 --outdir check     look at a few frames first
@@ -21,11 +22,12 @@ let chromium;
 try { ({ chromium } = createRequire(path.join(ROOT, 'package.json'))('playwright')); }
 catch { console.error('playwright not found in this folder: run `npm i playwright` here (and `npx playwright install chromium` if the browser is missing)'); process.exit(1); }
 const cfg = fs.existsSync(path.join(ROOT, 'video.json')) ? JSON.parse(fs.readFileSync(path.join(ROOT, 'video.json'), 'utf8')) : {};
+const timing = fs.existsSync(path.join(ROOT, 'timing.json')) ? JSON.parse(fs.readFileSync(path.join(ROOT, 'timing.json'), 'utf8')) : null;
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
 const pos = args.filter((a, i) => !a.startsWith('--') && !(i > 0 && args[i - 1].startsWith('--')));
 const [page, out] = pos;
-const FPS = +opt('fps', cfg.fps ?? 30), DUR = +opt('duration', cfg.duration ?? 8);
+const FPS = +opt('fps', cfg.fps ?? 30), DUR = +opt('duration', timing?.total ?? cfg.duration ?? 8);
 const W = +opt('width', cfg.width ?? 1920), H = +opt('height', cfg.height ?? 1080);
 const stills = opt('stills', null), outdir = opt('outdir', 'check'), audio = opt('audio', null);
 if (!page || (!out && !stills)) { console.error('usage: see the comment at the top of this file'); process.exit(1); }
@@ -49,6 +51,7 @@ const browser = await chromium.launch({ args: [...gpu, '--enable-gpu', '--ignore
 const tab = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 tab.on('pageerror', e => console.error('[page error]', e.message));
 tab.on('response', r => { if (r.status() >= 400) console.error('[failed to load]', r.url()); });
+if (timing) await tab.addInitScript(d => { window.__TIMING = d; }, timing.d);
 await tab.goto(`http://127.0.0.1:${server.address().port}/${page}`);
 await tab.waitForFunction(() => window.__ready === true, null, { timeout: 180000 });
 const at = t => tab.evaluate(async t => (await window.render(t)) ?? null, t);

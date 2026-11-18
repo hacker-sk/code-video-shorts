@@ -3,6 +3,10 @@ name: Make Reel
 # Two ways to trigger:
 # 1) Push (chat commits reels/<name>/index.html [+ video.json, music.wav|mp3]) -> renders automatically.
 # 2) Manual run with `name` (+ optional inline `html` payload) -> renders that reel.
+#
+# Voice-over: if the repo secret GEMINI_API_KEY is set, each reel's caption lines (TXT in index.html)
+# are spoken with Gemini TTS and the video timing follows the voice. Without the secret, nothing changes.
+# Optional repo variables: GEMINI_VOICE (default Kore), GEMINI_TTS_MODEL.
 on:
   push:
     paths:
@@ -81,6 +85,9 @@ jobs:
       - name: Render reels
         env:
           LIST: ${{ steps.prep.outputs.list }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_VOICE: ${{ vars.GEMINI_VOICE }}
+          GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL }}
         run: |
           set -e
           S="$GITHUB_WORKSPACE/skills/code-video/scripts"
@@ -89,8 +96,22 @@ jobs:
             [ -f package.json ] || echo '{"name":"video","private":true}' > package.json
             npm i playwright
             npx playwright install --with-deps chromium
+            MUSIC=""
+            for a in music.wav music.mp3; do if [ -f "$a" ]; then MUSIC="$a"; fi; done
             AUDIO=""
-            for a in music.wav music.mp3; do [ -f "$a" ] && AUDIO="--audio $a"; done
+            if [ -n "$GEMINI_API_KEY" ]; then
+              # voice-over: writes voice.wav + timing.json (render.mjs picks timing.json up automatically)
+              node "$S/tts.mjs" index.html voice.wav timing.json
+              AUDIO="--audio voice.wav"
+              if [ -n "$MUSIC" ]; then
+                ffmpeg -y -loglevel error -i voice.wav -stream_loop -1 -i "$MUSIC" -filter_complex \
+                  "[0:a]aresample=44100,aformat=channel_layouts=stereo[v];[1:a]aresample=44100,aformat=channel_layouts=stereo,volume=0.15[m];[v][m]amix=inputs=2:duration=first:normalize=0[o]" \
+                  -map "[o]" mix.wav
+                AUDIO="--audio mix.wav"
+              fi
+            elif [ -n "$MUSIC" ]; then
+              AUDIO="--audio $MUSIC"
+            fi
             node "$S/render.mjs" index.html video.mp4 $AUDIO
           done
 
