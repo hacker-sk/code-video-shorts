@@ -1,0 +1,102 @@
+name: Make Reel
+
+# Two ways to trigger:
+# 1) Push (chat commits reels/<name>/index.html [+ video.json, music.wav|mp3]) -> renders automatically.
+# 2) Manual run with `name` (+ optional inline `html` payload) -> renders that reel.
+on:
+  push:
+    paths:
+      - 'reels/*/index.html'
+      - 'reels/*/video.json'
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Reel folder name under reels/ (letters, numbers, - _)'
+        required: true
+      html:
+        description: 'Optional: full index.html payload (overwrites reels/<name>/index.html)'
+        required: false
+      width:
+        description: 'Width (used only if video.json is missing)'
+        default: '1080'
+      height:
+        description: 'Height (used only if video.json is missing)'
+        default: '1920'
+      fps:
+        description: 'FPS (used only if video.json is missing)'
+        default: '30'
+      duration:
+        description: 'Seconds (used only if video.json is missing)'
+        default: '10'
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install FFmpeg
+        run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
+
+      - name: Prepare reel folders
+        id: prep
+        env:
+          EVENT: ${{ github.event_name }}
+          NAME: ${{ inputs.name }}
+          HTML: ${{ inputs.html }}
+          W: ${{ inputs.width }}
+          H: ${{ inputs.height }}
+          FPS: ${{ inputs.fps }}
+          DUR: ${{ inputs.duration }}
+        run: |
+          set -e
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            LIST="$NAME"
+          else
+            LIST=$(git diff --name-only HEAD^ HEAD -- 'reels/*/index.html' 'reels/*/video.json' | cut -d/ -f2 | sort -u)
+          fi
+          for n in $LIST; do
+            [[ "$n" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "Bad reel name: $n"; exit 1; }
+            mkdir -p "reels/$n"
+            if [ "$EVENT" = "workflow_dispatch" ] && [ -n "$HTML" ]; then
+              printf '%s' "$HTML" > "reels/$n/index.html"
+            fi
+            [ -f "reels/$n/index.html" ] || { echo "reels/$n/index.html missing"; exit 1; }
+            if [ ! -f "reels/$n/video.json" ]; then
+              echo "{\"width\":${W:-1080},\"height\":${H:-1920},\"fps\":${FPS:-30},\"duration\":${DUR:-10}}" > "reels/$n/video.json"
+            fi
+          done
+          echo "list=$(echo $LIST)" >> "$GITHUB_OUTPUT"
+
+      - name: Render reels
+        env:
+          LIST: ${{ steps.prep.outputs.list }}
+        run: |
+          set -e
+          S="$GITHUB_WORKSPACE/skills/code-video/scripts"
+          for n in $LIST; do
+            cd "$GITHUB_WORKSPACE/reels/$n"
+            [ -f package.json ] || echo '{"name":"video","private":true}' > package.json
+            npm i playwright
+            npx playwright install --with-deps chromium
+            AUDIO=""
+            for a in music.wav music.mp3; do [ -f "$a" ] && AUDIO="--audio $a"; done
+            node "$S/render.mjs" index.html video.mp4 $AUDIO
+          done
+
+      - name: Upload reels
+        uses: actions/upload-artifact@v4
+        with:
+          name: reels
+          path: reels/*/video.mp4
+          if-no-files-found: error
