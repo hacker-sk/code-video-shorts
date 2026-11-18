@@ -50,7 +50,7 @@ const TXT=[
 const S=[0,0,0,1,1,1,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,5,5];
 const OV={7:2.2,18:2.6,31:4.28};
 const C=[];let cs=.5;
-TXT.forEach((tx,i)=>{const n=tx.split(' ').length,d=OV[i]||Math.max(1.7,.6+.28*n);
+TXT.forEach((tx,i)=>{const n=tx.split(' ').length,d=(window.__TIMING&&window.__TIMING[i])||OV[i]||Math.max(1.7,.6+.28*n);
  C.push({tx,n,d,s:cs,e:cs+d,size:i==18?190:n<=3?130:n<=5?96:72,lines:null});cs+=d});
 const SS=[];C.forEach((c,i)=>{if(SS[S[i]]==null)SS[S[i]]=c.s});
 
