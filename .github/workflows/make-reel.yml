@@ -7,7 +7,7 @@ name: Make Reel
 #
 # Voice-over: if the repo secret GEMINI_API_KEY is set, each reel's caption lines (TXT in index.html)
 # are spoken with Gemini TTS and the video timing follows the voice. Without the secret, nothing changes.
-# Optional repo variables: GEMINI_VOICE (default Kore), GEMINI_TTS_MODEL.
+# Optional repo variables: GEMINI_VOICE (default Kore), GEMINI_TTS_MODEL (default gemini-3.8-flash-lite-tts).
 #
 # Sound: reels/<name>/audio.json can add background music and sound effects from the sounds/ library
 # (see skills/code-video/SKILL.md). The library comes from sounds/ in the repo and from any .zip attached
@@ -20,6 +20,7 @@ name: Make Reel
 #
 # Caches (so later runs are faster): the unpacked sound library (re-downloaded only when the release zips change),
 # the Playwright browser + npm downloads, and the generated voice-over clips (a line that didn't change is not re-generated).
+# The voice-over clips are saved even when the run fails, so a retry continues where it stopped.
 on:
   push:
     paths:
@@ -173,12 +174,14 @@ jobs:
           key: pw-${{ runner.os }}-${{ steps.pwv.outputs.v }}
 
       # ---- voice-over clips: a line that didn't change keeps its audio (faster, and the same voice every time) ----
-      - name: Cache voice-over clips
+      # Restored from the newest earlier run and saved again at the end of this run, even if the run failed,
+      # so a retry after a rate-limit failure continues where it stopped.
+      - name: Restore voice-over clips
         if: ${{ steps.prep.outputs.list != '' && env.GEMINI_API_KEY != '' }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: .tts-cache
-          key: tts-${{ hashFiles('reels/*/index.html') }}
+          key: tts-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             tts-
 
@@ -187,7 +190,7 @@ jobs:
         env:
           LIST: ${{ steps.prep.outputs.list }}
           GEMINI_VOICE: ${{ vars.GEMINI_VOICE }}
-          GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL }}
+          GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL || 'gemini-3.8-flash-lite-tts' }}
           TTS_CACHE_DIR: ${{ github.workspace }}/.tts-cache
         run: |
           set -e
@@ -219,6 +222,13 @@ jobs:
             fi
             node "$S/render.mjs" index.html video.mp4 $AUDIO
           done
+
+      - name: Save voice-over clips
+        if: ${{ always() && steps.prep.outputs.list != '' && env.GEMINI_API_KEY != '' && hashFiles('.tts-cache/**') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: .tts-cache
+          key: tts-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload reels
         if: ${{ steps.prep.outputs.list != '' }}
