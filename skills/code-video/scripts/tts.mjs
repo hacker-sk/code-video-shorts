@@ -17,17 +17,20 @@
 // gemini-3.1-flash-tts-preview as the fallback. The 3.8 model takes the voice as voiceConfig.voice and the style in
 // speech_metadata; the 3.1 model takes a prebuilt voice name and the style as a sentence in front of the text.
 //
+// The page is opened over a local web server (like render.mjs does), not file://, so reels that import ES modules
+// from node_modules (e.g. Three.js) load too. TXT is read from the page; if it is module-scoped, from the HTML source.
+//
 // Usage (inside the reel folder): node <skill>/scripts/tts.mjs index.html [voice.wav] [timing.json]
 // Needs: GEMINI_API_KEY (Google AI Studio key), playwright in this folder.
 // Optional env: GEMINI_API_KEY_2 .. GEMINI_API_KEY_5 (extra keys; keys in the SAME Google project share one quota),
 //               GEMINI_TTS_MODEL (tried first; default gemini-3.8-flash-tts), GEMINI_VOICE (default Puck), GEMINI_TTS_STYLE,
 //               TTS_BATCH_CHARS (default 600), TTS_BATCH_LINES (default 12), TTS_MIN_PAUSE_MS (default 120),
 //               TTS_MIN_INTERVAL (seconds between calls on one key, default 7), TTS_CACHE_DIR
+import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
-import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
 const KEYS = [process.env.GEMINI_API_KEY, ...[2, 3, 4, 5].map(i => process.env['GEMINI_API_KEY_' + i])]
@@ -51,14 +54,36 @@ const [page = 'index.html', wavOut = 'voice.wav', timingOut = 'timing.json'] = p
 const LEAD = 0.5, GAP = 0.3, TAIL = 0.8; // LEAD must match the page's start offset (cs=.5)
 let RATE = 24000;                          // replaced by the sample rate Gemini's WAV reports
 
-// 1) caption lines come from the page itself, so voice and captions can't differ
+// 1) caption lines come from the page itself, so voice and captions can't differ.
+// The folder is served over local HTTP (same as render.mjs): ES module imports do not work from file://.
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json', '.woff2': 'font/woff2', '.ttf': 'font/ttf',
+  '.otf': 'font/otf', '.woff': 'font/woff', '.wasm': 'application/wasm', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg',
+  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.mp4': 'video/mp4', '.webm': 'video/webm',
+  '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json', '.txt': 'text/plain; charset=utf-8' };
+const server = http.createServer((req, res) => {
+  const f = path.join(ROOT, decodeURIComponent(new URL(req.url, 'http://x').pathname));
+  if (!f.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
+  fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); return res.end(); }
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream' }); res.end(d); });
+});
+await new Promise(r => server.listen(0, '127.0.0.1', r));
 const { chromium } = createRequire(path.join(ROOT, 'package.json'))('playwright');
-const browser = await chromium.launch();
+// same browser flags as render.mjs, so WebGL pages (Three.js) can start on a runner without a GPU
+const gpu = process.platform === 'darwin' ? ['--use-angle=metal'] : ['--enable-unsafe-swiftshader'];
+const browser = await chromium.launch({ args: [...gpu, '--enable-gpu', '--ignore-gpu-blocklist', '--force-color-profile=srgb', '--hide-scrollbars'] });
 const tab = await browser.newPage();
-await tab.goto(pathToFileURL(path.resolve(page)).href);
+tab.on('pageerror', e => console.error('[page error]', e.message));
+tab.on('response', r => { if (r.status() >= 400) console.error('[failed to load]', r.url()); });
+await tab.goto(`http://127.0.0.1:${server.address().port}/${page}`);
 await tab.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
-const lines = await tab.evaluate(() => (typeof TXT !== 'undefined' ? TXT : window.TXT));
-await browser.close();
+let lines = await tab.evaluate(() => (typeof TXT !== 'undefined' ? TXT : window.TXT));
+await browser.close(); server.close();
+if (!Array.isArray(lines) || !lines.length) {
+  // TXT is module-scoped (not reachable from outside the page): read the array literal from the HTML source
+  const m = fs.readFileSync(path.resolve(page), 'utf8').match(/\b(?:const|let|var)\s+TXT\s*=\s*(\[[\s\S]*?\])\s*;/);
+  if (m) { try { lines = new Function('return ' + m[1])(); } catch (e) { console.error('could not read TXT from the HTML source: ' + e.message); } }
+}
 if (!Array.isArray(lines) || !lines.length) { console.error('no TXT array of caption lines found in ' + page); process.exit(1); }
 
 // 2) one Gemini TTS call (for one line or a batch).
