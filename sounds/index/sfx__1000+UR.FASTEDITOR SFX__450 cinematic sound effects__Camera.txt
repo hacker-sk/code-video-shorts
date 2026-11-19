@@ -1,0 +1,16 @@
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/01 Camera 1.3s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/04 Camera 1.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/05 Camera 1.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/camera-click 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/camera-click2 1.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/camera-shutter-click 1.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/camera-shutter-fast 1.8s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/casio-exilim-camera 7.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/digicamerasound 3.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/digital camera zoom 1.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/dslr-camera-click 4.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/dslr-camera-focus-shutter-sound 0.8s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/lens-zooming-in-and-out 1.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/oldautofocus-nikon 26.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/oldshutter-nikon 18.8s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Camera/shutter-39318 7.8s

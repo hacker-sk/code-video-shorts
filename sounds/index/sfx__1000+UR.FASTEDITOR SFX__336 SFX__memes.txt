@@ -1,0 +1,71 @@
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Anvil Drop 0.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Awkward Moment 1.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Awkward Pause 02 4.0s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Awkward Pause 4.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Awkward Spring Pluck 1.0s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Bamboo Hit 0.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Big Disappointment 7.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Blushing  1.0s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Breast Twitch 0.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Calvary Charge 6.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Camera Whoosh 01 1.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Camera Whoosh 02 1.4s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cartoon Bite Sound Effect 1.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cartoon Boing Sound Effect 2.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cartoon Lick Sound Effect 2.2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cartoon Running Sound Effects 24.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cartoon Slip - Gaming Sound Effect 2.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cartoon poke sound effect 2.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cartoony Boing 01 2.2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cartoony Point 0.3s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Character Gone 0.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Comical Creaking Sound 2.2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Comical Disappointment 1.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Comical Duck Quack 2.2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Comical Pop Sound 1.4s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Comical Question Mark 0.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Comical Struggle 2.0s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Comical Turn Around 01 0.2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Comical Vein Popping 1 0.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Critical Point 3.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cuckoo Clock (3 times) 2.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cuckoo Moment 1.3s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cute Appearance 1 2.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/DBZ Instant Transmission 0.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/DBZ Strong Punch 1.4s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Dark Gleam 2.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Depression 2.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Discovery 3.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Done Bell 2.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Doom 3.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Dramatic Whoosh 2.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Dream Bubble 2.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Epic Depression 1.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Epic Fail 01 2.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Epic Shock (Doom) 3.3s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Epic Twinkle 1.0s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Funny Bonk 1.3s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Funny Fall 1.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Funny Whoosh 0.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Funny Xylophone 2.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Gag 01 3.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/High Sprung 0.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Hollow Hit 01 2.3s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Icky Squish 0.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Mario Kart Race Start - Gaming Sound Effect (HD) 4.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Mario Level Up Sound Effect 3.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Metal Gear Alert Sound Effect 2.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/SONIC BOING SOUND EFFECT 1.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Sonic Coin - Free Sound Effect 6.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Sound effect - in anime world 207.0s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Stupid Gag 01 2.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Stupid Gag 02 1.0s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Stupid Joke 3.0s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Stupid Moment 2 0.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Stupid Moment 1.4s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Surprise Pop 1.2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Taco Bell Bong SFX 1.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Tense Moment 1.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Wimpy Trumpet 4.2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/counter strike jingle - cs radio-enemy spotted 1.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/flipagram roasting - laugh meme 147.1s

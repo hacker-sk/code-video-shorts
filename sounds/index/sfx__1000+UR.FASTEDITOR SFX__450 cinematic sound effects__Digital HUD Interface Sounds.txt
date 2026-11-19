@@ -1,0 +1,10 @@
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/Digital Type Text 8.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/HUD Screen - 01 1.8s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/HUD Screen - 02 1.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/HUD Screen - 03 1.8s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/Notification 1.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/Right (bells) 1.9s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/Select - 01 1.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/Select - 02 1.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/Select - 03 1.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Digital HUD Interface Sounds/Wrong 1.6s

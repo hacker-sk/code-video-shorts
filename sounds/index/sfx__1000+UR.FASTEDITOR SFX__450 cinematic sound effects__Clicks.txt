@@ -1,0 +1,16 @@
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_01 1.1s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_02 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_03 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_04 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_05 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_06 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_07 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_08 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_09 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_10 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_11 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_12 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_13 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_14 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_15 0.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Clicks/Click_16 0.5s

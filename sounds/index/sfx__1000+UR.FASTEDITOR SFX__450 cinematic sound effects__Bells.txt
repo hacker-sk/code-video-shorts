@@ -1,0 +1,5 @@
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Bells/Bells 01 2.3s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Bells/Bells 02 2.3s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Bells/Bells 03 2.3s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Bells/Bells 04 2.3s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Bells/Bells 05 2.4s

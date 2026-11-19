@@ -1,0 +1,10 @@
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_01 8.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_02 8.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_03 8.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_04 8.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_05 8.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_06 8.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_07 8.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_08 8.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_09 8.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low/SD_Low_10 8.0s

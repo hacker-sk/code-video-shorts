@@ -1,0 +1,16 @@
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Delay woosh 3.1s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Fast swish 0.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Fast zing 2.1s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Flame pass 5.3s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Future swoosh 3.8s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Future zing 8.9s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Golden swoosh 1.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/High fast swoosh 0.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Low fly 1.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Reverse riser 01 5.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Rumble swish 3.8s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Sharp swoosh 0.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Short whip 1.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Space ship fly by 1.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Windy swish 2.8s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Swishes/Woosh rattle 3.1s

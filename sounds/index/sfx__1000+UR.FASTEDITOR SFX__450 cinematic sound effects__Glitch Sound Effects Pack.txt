@@ -1,0 +1,30 @@
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glich 1 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glich2 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glich3 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glich4 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glitch 01 2.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glitch 02 2.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glitch 03 2.3s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glitch 04 2.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glitch 05 3.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/glitch 06 2.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_10 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_11 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_12 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_13 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_14 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_16 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_17 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_18 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_19 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_20 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_21 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_22 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_23 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_24 3.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_25 4.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_5 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_6 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_7 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_8 2.0s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Glitch Sound Effects Pack/gltchgltch_9 2.0s
