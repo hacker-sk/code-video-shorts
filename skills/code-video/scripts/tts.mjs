@@ -6,8 +6,9 @@
 // Because the audio decides how long each line lasts, voice and captions/animation can't drift apart.
 // Usage (inside the reel folder): node <skill>/scripts/tts.mjs index.html [voice.wav] [timing.json]
 // Needs: GEMINI_API_KEY (Google AI Studio key), playwright in this folder.
-// Optional env: GEMINI_TTS_MODEL (default gemini-3.8-flash-tts), GEMINI_VOICE (default Kore), GEMINI_TTS_STYLE,
-//               TTS_MIN_INTERVAL (seconds between Gemini calls, default 7, keeps under free-tier per-minute limits),
+// Optional env: GEMINI_API_KEY_2 .. GEMINI_API_KEY_5 (extra keys: when one hits its limit the next one is used),
+//               GEMINI_TTS_MODEL (default gemini-3.8-flash-lite-tts), GEMINI_VOICE (default Kore), GEMINI_TTS_STYLE,
+//               TTS_MIN_INTERVAL (seconds between calls on one key, default 7, keeps under free-tier per-minute limits),
 //               TTS_CACHE_DIR (a folder where each generated line is kept; an unchanged line is reused instead of being generated again)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,9 +17,12 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
-const KEY = process.env.GEMINI_API_KEY;
-if (!KEY) { console.error('GEMINI_API_KEY is not set'); process.exit(1); }
-const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-tts';
+const KEYS = [process.env.GEMINI_API_KEY, ...[2, 3, 4, 5].map(i => process.env['GEMINI_API_KEY_' + i])]
+  .map(k => (k || '').trim()).filter(Boolean);
+if (!KEYS.length) { console.error('GEMINI_API_KEY is not set'); process.exit(1); }
+const ks = KEYS.map((key, i) => ({ key, n: i + 1, readyAt: 0, dead: false })); // readyAt: earliest time this key may be used again
+console.log(`Gemini keys in use: ${ks.length}`);
+const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-lite-tts';
 const VOICE = process.env.GEMINI_VOICE || 'Kore';
 const STYLE = process.env.GEMINI_TTS_STYLE || 'clear, engaging storyteller';
 const CACHE = process.env.TTS_CACHE_DIR || '';
@@ -38,45 +42,52 @@ await browser.close();
 if (!Array.isArray(lines) || !lines.length) { console.error('no TXT array of caption lines found in ' + page); process.exit(1); }
 
 // 2) one Gemini TTS call per line.
-// Calls are spaced MIN_GAP apart so the free tier's per-minute limit isn't hit, and on 429/5xx the wait
-// follows what Google asks for (Retry-After / retryDelay), falling back to a growing delay.
+// Each call goes to the key that is ready soonest, so several keys share the work and each stays under its
+// per-minute limit. A key that reports its daily quota is used up is dropped for the rest of the run; on a
+// per-minute 429 that key rests for the time Google asks (Retry-After / retryDelay) while another key carries on.
 // Gemini 3.8 reads `text` literally, so the speaking style goes in speechMetadata, never in the text.
 const sleep = ms => new Promise(res => setTimeout(res, ms));
-let lastCall = 0;
 async function tts(text) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
   const body = JSON.stringify({
     contents: [{ role: 'user', parts: [{ text, speechMetadata: { style: STYLE } }] }],
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { voice: VOICE } } }
   });
-  const TRIES = 8;
+  const TRIES = 8 * ks.length;
   for (let a = 0; a < TRIES; a++) {
-    const wait = lastCall + MIN_GAP - Date.now();
-    if (wait > 0) await sleep(wait);
-    lastCall = Date.now();
-    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY }, body });
-    let delay = Math.min(90000, (a + 1) * 12000);
+    const live = ks.filter(k => !k.dead);
+    if (!live.length) throw new Error('Gemini TTS: every key has used up its daily quota');
+    const k = live.reduce((x, y) => (y.readyAt < x.readyAt ? y : x));
+    const wait = k.readyAt - Date.now();
+    if (wait > 0) { if (wait > 5000) console.error(`  all keys busy, waiting ${Math.round(wait / 1000)}s`); await sleep(wait); }
+    k.readyAt = Date.now() + MIN_GAP;
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': k.key }, body });
     if (r.ok) {
       const b64 = (await r.json()).candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
       if (b64) return Buffer.from(b64, 'base64');
-      console.error(`  no audio in response (try ${a + 1}/${TRIES}), retrying`);
-    } else {
-      const t = await r.text();
-      if (r.status !== 429 && r.status < 500) throw new Error(`Gemini TTS ${r.status}: ${t.slice(0, 300)}`);
-      console.error(`  Gemini ${r.status} (try ${a + 1}/${TRIES}): ${t.replace(/\s+/g, ' ').slice(0, 250)}`);
-      if (/PerDay|per day|daily/i.test(t)) throw new Error(`Gemini TTS daily quota is used up: ${t.replace(/\s+/g, ' ').slice(0, 250)}`);
-      const ra = Number(r.headers.get('retry-after'));
-      const m = t.match(/"retryDelay":\s*"(\d+(?:\.\d+)?)s"/);
-      if (ra > 0) delay = ra * 1000 + 1000;
-      else if (m) delay = Math.ceil(Number(m[1]) * 1000) + 1000;
-      delay = Math.min(delay, 120000);
+      console.error(`  key ${k.n}: no audio in response (try ${a + 1}/${TRIES}), retrying`);
+      k.readyAt = Date.now() + 5000;
+      continue;
     }
-    if (a < TRIES - 1) { console.error(`  waiting ${Math.round(delay / 1000)}s`); await sleep(delay); }
+    const t = await r.text();
+    if (r.status !== 429 && r.status < 500) throw new Error(`Gemini TTS ${r.status} (key ${k.n}): ${t.slice(0, 300)}`);
+    console.error(`  key ${k.n}: Gemini ${r.status} (try ${a + 1}/${TRIES}): ${t.replace(/\s+/g, ' ').slice(0, 250)}`);
+    if (/PerDay|per day|daily/i.test(t)) {
+      k.dead = true;
+      console.error(`  key ${k.n}: daily quota used up, ${ks.filter(x => !x.dead).length} key(s) left`);
+      continue;
+    }
+    let delay = Math.min(90000, 15000 + a * 5000);
+    const ra = Number(r.headers.get('retry-after'));
+    const m = t.match(/"retryDelay":\s*"(\d+(?:\.\d+)?)s"/);
+    if (ra > 0) delay = ra * 1000 + 1000;
+    else if (m) delay = Math.ceil(Number(m[1]) * 1000) + 1000;
+    k.readyAt = Date.now() + Math.min(delay, 120000);
   }
   throw new Error('Gemini TTS failed after retries');
 }
 
-// same model + voice + style + text -> same clip, kept in TTS_CACHE_DIR
+// same model + voice + style + text -> same clip, kept in TTS_CACHE_DIR (the key doesn't matter)
 async function ttsCached(text) {
   if (!CACHE) return tts(text);
   const f = path.join(CACHE, crypto.createHash('sha1').update([MODEL, VOICE, STYLE, text].join('\u0000')).digest('hex') + '.wav');

@@ -7,6 +7,8 @@ name: Make Reel
 #
 # Voice-over: if the repo secret GEMINI_API_KEY is set, each reel's caption lines (TXT in index.html)
 # are spoken with Gemini TTS and the video timing follows the voice. Without the secret, nothing changes.
+# Extra keys: add secrets GEMINI_API_KEY_2 and GEMINI_API_KEY_3 (up to _5 is read); when one key hits its limit
+# the next one is used. Keys from the same Google Cloud project share one quota, so use keys from different projects.
 # Optional repo variables: GEMINI_VOICE (default Kore), GEMINI_TTS_MODEL (default gemini-3.8-flash-lite-tts).
 #
 # Sound: reels/<name>/audio.json can add background music and sound effects from the sounds/ library
@@ -58,6 +60,8 @@ jobs:
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
     steps:
       - uses: actions/checkout@v4
         with:
