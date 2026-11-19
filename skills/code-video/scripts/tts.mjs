@@ -7,6 +7,7 @@
 // Usage (inside the reel folder): node <skill>/scripts/tts.mjs index.html [voice.wav] [timing.json]
 // Needs: GEMINI_API_KEY (Google AI Studio key), playwright in this folder.
 // Optional env: GEMINI_TTS_MODEL (default gemini-3.8-flash-tts), GEMINI_VOICE (default Kore), GEMINI_TTS_STYLE,
+//               TTS_MIN_INTERVAL (seconds between Gemini calls, default 7, keeps under free-tier per-minute limits),
 //               TTS_CACHE_DIR (a folder where each generated line is kept; an unchanged line is reused instead of being generated again)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,6 +22,7 @@ const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-tts';
 const VOICE = process.env.GEMINI_VOICE || 'Kore';
 const STYLE = process.env.GEMINI_TTS_STYLE || 'clear, engaging storyteller';
 const CACHE = process.env.TTS_CACHE_DIR || '';
+const MIN_GAP = Math.max(0, Number(process.env.TTS_MIN_INTERVAL ?? 7)) * 1000;
 const [page = 'index.html', wavOut = 'voice.wav', timingOut = 'timing.json'] = process.argv.slice(2);
 const LEAD = 0.5, GAP = 0.3, TAIL = 0.8; // LEAD must match the page's start offset (cs=.5)
 let RATE = 24000;                          // replaced by the sample rate Gemini's WAV reports
@@ -35,24 +37,41 @@ const lines = await tab.evaluate(() => (typeof TXT !== 'undefined' ? TXT : windo
 await browser.close();
 if (!Array.isArray(lines) || !lines.length) { console.error('no TXT array of caption lines found in ' + page); process.exit(1); }
 
-// 2) one Gemini TTS call per line (retries on rate limits / server errors).
+// 2) one Gemini TTS call per line.
+// Calls are spaced MIN_GAP apart so the free tier's per-minute limit isn't hit, and on 429/5xx the wait
+// follows what Google asks for (Retry-After / retryDelay), falling back to a growing delay.
 // Gemini 3.8 reads `text` literally, so the speaking style goes in speechMetadata, never in the text.
+const sleep = ms => new Promise(res => setTimeout(res, ms));
+let lastCall = 0;
 async function tts(text) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
   const body = JSON.stringify({
     contents: [{ role: 'user', parts: [{ text, speechMetadata: { style: STYLE } }] }],
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { voice: VOICE } } }
   });
-  for (let a = 0; a < 6; a++) {
+  const TRIES = 8;
+  for (let a = 0; a < TRIES; a++) {
+    const wait = lastCall + MIN_GAP - Date.now();
+    if (wait > 0) await sleep(wait);
+    lastCall = Date.now();
     const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY }, body });
+    let delay = Math.min(90000, (a + 1) * 12000);
     if (r.ok) {
       const b64 = (await r.json()).candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
       if (b64) return Buffer.from(b64, 'base64');
-      console.error('no audio in response, retrying');
-    } else if (r.status !== 429 && r.status < 500) {
-      throw new Error(`Gemini TTS ${r.status}: ${(await r.text()).slice(0, 300)}`);
+      console.error(`  no audio in response (try ${a + 1}/${TRIES}), retrying`);
+    } else {
+      const t = await r.text();
+      if (r.status !== 429 && r.status < 500) throw new Error(`Gemini TTS ${r.status}: ${t.slice(0, 300)}`);
+      console.error(`  Gemini ${r.status} (try ${a + 1}/${TRIES}): ${t.replace(/\s+/g, ' ').slice(0, 250)}`);
+      if (/PerDay|per day|daily/i.test(t)) throw new Error(`Gemini TTS daily quota is used up: ${t.replace(/\s+/g, ' ').slice(0, 250)}`);
+      const ra = Number(r.headers.get('retry-after'));
+      const m = t.match(/"retryDelay":\s*"(\d+(?:\.\d+)?)s"/);
+      if (ra > 0) delay = ra * 1000 + 1000;
+      else if (m) delay = Math.ceil(Number(m[1]) * 1000) + 1000;
+      delay = Math.min(delay, 120000);
     }
-    await new Promise(res => setTimeout(res, (a + 1) * 8000));
+    if (a < TRIES - 1) { console.error(`  waiting ${Math.round(delay / 1000)}s`); await sleep(delay); }
   }
   throw new Error('Gemini TTS failed after retries');
 }
