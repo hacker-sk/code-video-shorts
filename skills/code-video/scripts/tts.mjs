@@ -6,9 +6,11 @@
 // Because the audio decides how long each line lasts, voice and captions/animation can't drift apart.
 // Usage (inside the reel folder): node <skill>/scripts/tts.mjs index.html [voice.wav] [timing.json]
 // Needs: GEMINI_API_KEY (Google AI Studio key), playwright in this folder.
-// Optional env: GEMINI_TTS_MODEL (default gemini-3.8-flash-tts), GEMINI_VOICE (default Kore), GEMINI_TTS_STYLE.
+// Optional env: GEMINI_TTS_MODEL (default gemini-3.8-flash-tts), GEMINI_VOICE (default Kore), GEMINI_TTS_STYLE,
+//               TTS_CACHE_DIR (a folder where each generated line is kept; an unchanged line is reused instead of being generated again)
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 
@@ -18,6 +20,7 @@ if (!KEY) { console.error('GEMINI_API_KEY is not set'); process.exit(1); }
 const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-tts';
 const VOICE = process.env.GEMINI_VOICE || 'Kore';
 const STYLE = process.env.GEMINI_TTS_STYLE || 'clear, engaging storyteller';
+const CACHE = process.env.TTS_CACHE_DIR || '';
 const [page = 'index.html', wavOut = 'voice.wav', timingOut = 'timing.json'] = process.argv.slice(2);
 const LEAD = 0.5, GAP = 0.3, TAIL = 0.8; // LEAD must match the page's start offset (cs=.5)
 let RATE = 24000;                          // replaced by the sample rate Gemini's WAV reports
@@ -54,6 +57,17 @@ async function tts(text) {
   throw new Error('Gemini TTS failed after retries');
 }
 
+// same model + voice + style + text -> same clip, kept in TTS_CACHE_DIR
+async function ttsCached(text) {
+  if (!CACHE) return tts(text);
+  const f = path.join(CACHE, crypto.createHash('sha1').update([MODEL, VOICE, STYLE, text].join('\u0000')).digest('hex') + '.wav');
+  if (fs.existsSync(f)) { console.log('  (cached)'); return fs.readFileSync(f); }
+  const b = await tts(text);
+  fs.mkdirSync(CACHE, { recursive: true });
+  fs.writeFileSync(f, b);
+  return b;
+}
+
 // Gemini 3.8 returns a complete WAV file: pull out the 16-bit mono samples and the sample rate
 // (a bare PCM buffer is still accepted as 24 kHz)
 function pcmOf(buf) {
@@ -85,7 +99,7 @@ function trim(s) {
 }
 
 const n = lines.length, clips = [];
-for (let i = 0; i < n; i++) { console.log(`TTS ${i + 1}/${n}`); clips.push(trim(pcmOf(await tts(lines[i])))); }
+for (let i = 0; i < n; i++) { console.log(`TTS ${i + 1}/${n}`); clips.push(trim(pcmOf(await ttsCached(lines[i])))); }
 
 // 3) lay clips on one timeline; each line's slot = clip length + gap, so slots are the caption durations
 const leadS = Math.round(LEAD * RATE), gapS = Math.round(GAP * RATE), tailS = Math.round(TAIL * RATE);

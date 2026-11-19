@@ -17,6 +17,9 @@ name: Make Reel
 # (Uguu, free; Cloudinary as a fallback if the secret CLOUDINARY_URL is set) and scheduled on your YouTube channel
 # via Buffer 1 minute later.
 # Optional repo variables: BUFFER_CHANNEL_ID, BUFFER_YOUTUBE_PRIVACY (public|unlisted|private), BUFFER_YOUTUBE_CATEGORY.
+#
+# Caches (so later runs are faster): the unpacked sound library (re-downloaded only when the release zips change),
+# the Playwright browser + npm downloads, and the generated voice-over clips (a line that didn't change is not re-generated).
 on:
   push:
     paths:
@@ -53,6 +56,7 @@ jobs:
     timeout-minutes: 60
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -96,38 +100,109 @@ jobs:
 
       - name: Install FFmpeg
         if: ${{ steps.prep.outputs.list != '' }}
-        run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
+        run: |
+          # no apt-get update first (slow); fall back to it only if the install fails
+          sudo apt-get install -y --no-install-recommends ffmpeg || { sudo apt-get update -y && sudo apt-get install -y --no-install-recommends ffmpeg; }
+
+      # ---- sound library: cached, re-downloaded only when the release zips change ----
+      - name: Check sound library version
+        id: snd
+        if: ${{ steps.prep.outputs.list != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          K=none
+          if gh release view sounds >/dev/null 2>&1; then
+            K=$(gh release view sounds --json assets --jq '.assets[] | "\(.id) \(.name) \(.size)"' | sha256sum | cut -c1-16)
+          fi
+          echo "key=$K" >> "$GITHUB_OUTPUT"
+
+      - name: Restore sound library cache
+        id: sndcache
+        if: ${{ steps.prep.outputs.list != '' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: .sound-cache
+          key: sounds-${{ steps.snd.outputs.key }}
 
       - name: Fetch and unpack sound library
         if: ${{ steps.prep.outputs.list != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
+          HIT: ${{ steps.sndcache.outputs.cache-hit }}
+          KEY: ${{ steps.snd.outputs.key }}
         run: |
           shopt -s nullglob
-          # zips attached to the release tagged "sounds" (for files over 100 MB)
-          if gh release view sounds >/dev/null 2>&1; then
-            gh release download sounds --pattern '*.zip' --dir sounds --clobber
+          mkdir -p .sound-cache
+          if [ "$KEY" != "none" ] && [ "$HIT" != "true" ]; then
+            # zips attached to the release tagged "sounds" (for files over 100 MB)
+            mkdir -p "$RUNNER_TEMP/zips"
+            gh release download sounds --pattern '*.zip' --dir "$RUNNER_TEMP/zips" --clobber
+            for z in "$RUNNER_TEMP"/zips/*.zip; do
+              unzip -q "$z" -d ".sound-cache/$(basename "$z" .zip)"
+            done
+            rm -rf "$RUNNER_TEMP/zips"
           fi
+          cp -al .sound-cache/. sounds/ 2>/dev/null || cp -a .sound-cache/. sounds/
+          # small zips committed straight into sounds/
           for z in sounds/*.zip; do
             d="${z%.zip}"
             [ -d "$d" ] || unzip -q "$z" -d "$d"
           done
 
+      - name: Save sound library cache
+        if: ${{ steps.prep.outputs.list != '' && steps.snd.outputs.key != 'none' && steps.sndcache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: .sound-cache
+          key: sounds-${{ steps.snd.outputs.key }}
+
+      # ---- Playwright browser + npm downloads ----
+      - name: Find latest Playwright version
+        id: pwv
+        if: ${{ steps.prep.outputs.list != '' }}
+        run: echo "v=$(npm view playwright version)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browser and npm downloads
+        if: ${{ steps.prep.outputs.list != '' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.npm
+          key: pw-${{ runner.os }}-${{ steps.pwv.outputs.v }}
+
+      # ---- voice-over clips: a line that didn't change keeps its audio (faster, and the same voice every time) ----
+      - name: Cache voice-over clips
+        if: ${{ steps.prep.outputs.list != '' && env.GEMINI_API_KEY != '' }}
+        uses: actions/cache@v4
+        with:
+          path: .tts-cache
+          key: tts-${{ hashFiles('reels/*/index.html') }}
+          restore-keys: |
+            tts-
+
       - name: Render reels
         if: ${{ steps.prep.outputs.list != '' }}
         env:
           LIST: ${{ steps.prep.outputs.list }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_VOICE: ${{ vars.GEMINI_VOICE }}
           GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL }}
+          TTS_CACHE_DIR: ${{ github.workspace }}/.tts-cache
         run: |
           set -e
           S="$GITHUB_WORKSPACE/skills/code-video/scripts"
+          PW=""
           for n in $LIST; do
             cd "$GITHUB_WORKSPACE/reels/$n"
             [ -f package.json ] || echo '{"name":"video","private":true}' > package.json
             npm i playwright
-            npx playwright install --with-deps chromium
+            if [ -z "$PW" ]; then
+              npx playwright install --with-deps chromium   # system libraries once per run
+              PW=1
+            else
+              npx playwright install chromium
+            fi
             MUSIC=""
             for a in music.wav music.mp3; do if [ -f "$a" ]; then MUSIC="$a"; fi; done
             if [ -n "$GEMINI_API_KEY" ]; then

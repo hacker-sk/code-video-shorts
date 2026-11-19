@@ -4,6 +4,7 @@ name: Sound Catalog
 # so the chat can find sounds by name without reading 3000 files.
 # The library can be folders in sounds/, zips in sounds/, or zips attached to the GitHub Release tagged "sounds"
 # (for files over 100 MB). Zips are unpacked first (sounds/sfx.zip -> sounds/sfx/).
+# The unpacked library is cached under the same key the Make Reel workflow uses, so reels start faster too.
 # After attaching zips to an existing release, run this workflow by hand (Actions > Sound Catalog > Run workflow).
 on:
   push:
@@ -34,20 +35,55 @@ jobs:
           node-version: '20'
 
       - name: Install FFmpeg
-        run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
+        run: |
+          sudo apt-get install -y --no-install-recommends ffmpeg || { sudo apt-get update -y && sudo apt-get install -y --no-install-recommends ffmpeg; }
+
+      - name: Check sound library version
+        id: snd
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          K=none
+          if gh release view sounds >/dev/null 2>&1; then
+            K=$(gh release view sounds --json assets --jq '.assets[] | "\(.id) \(.name) \(.size)"' | sha256sum | cut -c1-16)
+          fi
+          echo "key=$K" >> "$GITHUB_OUTPUT"
+
+      - name: Restore sound library cache
+        id: sndcache
+        uses: actions/cache/restore@v4
+        with:
+          path: .sound-cache
+          key: sounds-${{ steps.snd.outputs.key }}
 
       - name: Fetch and unpack sound library
         env:
           GH_TOKEN: ${{ github.token }}
+          HIT: ${{ steps.sndcache.outputs.cache-hit }}
+          KEY: ${{ steps.snd.outputs.key }}
         run: |
           shopt -s nullglob
-          if gh release view sounds >/dev/null 2>&1; then
-            gh release download sounds --pattern '*.zip' --dir sounds --clobber
+          mkdir -p .sound-cache
+          if [ "$KEY" != "none" ] && [ "$HIT" != "true" ]; then
+            mkdir -p "$RUNNER_TEMP/zips"
+            gh release download sounds --pattern '*.zip' --dir "$RUNNER_TEMP/zips" --clobber
+            for z in "$RUNNER_TEMP"/zips/*.zip; do
+              unzip -q "$z" -d ".sound-cache/$(basename "$z" .zip)"
+            done
+            rm -rf "$RUNNER_TEMP/zips"
           fi
+          cp -al .sound-cache/. sounds/ 2>/dev/null || cp -a .sound-cache/. sounds/
           for z in sounds/*.zip; do
             d="${z%.zip}"
             [ -d "$d" ] || unzip -q "$z" -d "$d"
           done
+
+      - name: Save sound library cache
+        if: ${{ steps.snd.outputs.key != 'none' && steps.sndcache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: .sound-cache
+          key: sounds-${{ steps.snd.outputs.key }}
 
       - name: Build catalog
         run: node skills/code-video/scripts/catalog.mjs sounds
