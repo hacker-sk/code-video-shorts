@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 // Publishes a rendered reel to YouTube through Buffer, scheduled 1 minute from now.
-// Buffer's API has no file upload (it only takes a public URL), so the MP4 is first uploaded to Cloudinary.
+// Buffer's API has no file upload (it only takes a public URL), so the MP4 is first put on a temporary public host:
+//   1) Uguu (uguu.se): free, no account or key, files are deleted after a few hours (default)
+//   2) Cloudinary: used instead if Uguu fails and CLOUDINARY_URL is set (cloudinary://KEY:SECRET@CLOUD_NAME)
 // Usage: node publish.mjs <reel-name> <video.mp4>
-// Env:   BUFFER_API_KEY (Buffer > Settings > API), CLOUDINARY_URL (cloudinary://KEY:SECRET@CLOUD_NAME)
+// Env:   BUFFER_API_KEY (Buffer > Settings > API)
 //        optional: BUFFER_CHANNEL_ID (else the first YouTube channel found), BUFFER_YOUTUBE_PRIVACY (public|unlisted|private, default public),
-//                  BUFFER_YOUTUBE_CATEGORY (YouTube category id, default 24 = Entertainment), BUFFER_DELAY_SECONDS (default 60)
+//                  BUFFER_YOUTUBE_CATEGORY (YouTube category id, default 24 = Entertainment), BUFFER_DELAY_SECONDS (default 60),
+//                  UGUU_UPLOAD_URL (default https://uguu.se/upload)
 // Optional reels/<name>/post.json: {"title": "...", "description": "..."}; otherwise the title comes from the folder name.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,7 +17,6 @@ const [name, file] = process.argv.slice(2);
 const BUFFER = process.env.BUFFER_API_KEY, CLD = process.env.CLOUDINARY_URL;
 if (!name || !file) { console.error('usage: publish.mjs <reel-name> <video.mp4>'); process.exit(1); }
 if (!BUFFER) { console.error('BUFFER_API_KEY is not set'); process.exit(1); }
-if (!CLD) { console.error('CLOUDINARY_URL is not set (Buffer needs a public URL for the video)'); process.exit(1); }
 if (!fs.existsSync(file)) { console.error(`${file} not found`); process.exit(1); }
 
 const privacy = process.env.BUFFER_YOUTUBE_PRIVACY || 'public';
@@ -31,17 +33,48 @@ let text = post.description || title;
 if (!/#shorts/i.test(text)) text += '\n\n#Shorts';
 
 // 1) host the video at a public URL
-const cu = new URL(CLD);
-const ts = Math.floor(Date.now() / 1000), publicId = `reels/${name}-${ts}`;
-const signature = crypto.createHash('sha1').update(`public_id=${publicId}&timestamp=${ts}${cu.password}`).digest('hex');
-const fd = new FormData();
-fd.append('file', await fs.openAsBlob(file), 'video.mp4');
-fd.append('api_key', cu.username); fd.append('timestamp', String(ts)); fd.append('public_id', publicId); fd.append('signature', signature);
-console.log('uploading video to Cloudinary...');
-const up = await fetch(`https://api.cloudinary.com/v1_1/${cu.hostname}/video/upload`, { method: 'POST', body: fd });
-const upJson = await up.json().catch(() => ({}));
-if (!up.ok || !upJson.secure_url) { console.error(`Cloudinary upload failed (${up.status}): ${JSON.stringify(upJson).slice(0, 300)}`); process.exit(1); }
-const videoUrl = upJson.secure_url;
+const size = fs.statSync(file).size;
+
+async function hostUguu() {
+  if (size > 128 * 1024 * 1024) throw new Error(`video is ${(size / 1048576).toFixed(0)} MB, over Uguu's 128 MB limit`);
+  const urls = process.env.UGUU_UPLOAD_URL ? [process.env.UGUU_UPLOAD_URL] : ['https://uguu.se/upload', 'https://uguu.se/upload.php'];
+  let last = '';
+  for (const u of urls) {
+    const fd = new FormData();
+    fd.append('files[]', await fs.openAsBlob(file), `${name}.mp4`);
+    try {
+      const r = await fetch(u, { method: 'POST', body: fd });
+      const t = await r.text();
+      let j = null; try { j = JSON.parse(t); } catch {}
+      const url = j?.files?.[0]?.url;
+      if (r.ok && url) return url;
+      last = `${u} -> ${r.status} ${t.slice(0, 200)}`;
+    } catch (e) { last = `${u} -> ${e.message}`; }
+  }
+  throw new Error(last);
+}
+
+async function hostCloudinary() {
+  const cu = new URL(CLD);
+  const ts = Math.floor(Date.now() / 1000), publicId = `reels/${name}-${ts}`;
+  const signature = crypto.createHash('sha1').update(`public_id=${publicId}&timestamp=${ts}${cu.password}`).digest('hex');
+  const fd = new FormData();
+  fd.append('file', await fs.openAsBlob(file), 'video.mp4');
+  fd.append('api_key', cu.username); fd.append('timestamp', String(ts)); fd.append('public_id', publicId); fd.append('signature', signature);
+  const r = await fetch(`https://api.cloudinary.com/v1_1/${cu.hostname}/video/upload`, { method: 'POST', body: fd });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.secure_url) throw new Error(`${r.status} ${JSON.stringify(j).slice(0, 300)}`);
+  return j.secure_url;
+}
+
+const hosts = [['Uguu', hostUguu]];
+if (CLD) hosts.push(['Cloudinary', hostCloudinary]);
+let videoUrl = null;
+for (const [label, fn] of hosts) {
+  try { console.log(`uploading video to ${label}...`); videoUrl = await fn(); break; }
+  catch (e) { console.error(`${label} upload failed: ${e.message}`); }
+}
+if (!videoUrl) { console.error('could not host the video anywhere'); process.exit(1); }
 console.log('hosted at', videoUrl);
 
 // 2) Buffer GraphQL helper
