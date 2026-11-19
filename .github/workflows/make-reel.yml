@@ -1,9 +1,11 @@
 name: Make Reel
 
-# Two ways to trigger:
-# 1) Push (chat commits reels/<n>/index.html [+ video.json, audio.json, music.wav|mp3]) -> renders automatically.
-# 2) Manual run with `name` (+ optional inline `html` payload) -> renders that reel.
-# If no reel changed in a run, the render, upload and publish steps are skipped (the run still passes).
+# Every reel is rendered and published by its OWN job, one after the other (never all in one job):
+# 1) Push (chat commits reels/<n>/index.html [+ video.json, audio.json, music.wav|mp3]) -> every reel changed in the push
+#    (all commits of the push, not only the last one) becomes its own job in the queue, one at a time (max-parallel 1).
+#    A failed reel does not stop the next ones. Committing each reel as its own commit gives each reel its own run.
+# 2) Manual run with `name` (+ optional inline `html` payload) -> renders that one reel.
+# If no reel changed in a run, nothing is rendered (the run still passes).
 #
 # Voice-over: if the repo secret GEMINI_API_KEY is set, each reel's caption lines (TXT in index.html)
 # are spoken with Gemini TTS and the video timing follows the voice. Without the secret, nothing changes.
@@ -22,9 +24,9 @@ name: Make Reel
 # Optional repo variables: BUFFER_CHANNEL_ID (YouTube), BUFFER_INSTAGRAM_CHANNEL_ID, BUFFER_INSTAGRAM (set to off to skip Instagram),
 # BUFFER_YOUTUBE_PRIVACY (public|unlisted|private), BUFFER_YOUTUBE_CATEGORY.
 #
-# Caches (so later runs are faster): the unpacked sound library (re-downloaded only when the release zips change),
+# Caches (so later jobs are faster): the unpacked sound library (re-downloaded only when the release zips change),
 # the Playwright browser + npm downloads, and the generated voice-over clips (a line that didn't change is not re-generated).
-# The voice-over clips are saved even when the run fails, so a retry continues where it stopped.
+# The voice-over clips are saved even when the job fails, so a retry continues where it stopped.
 on:
   push:
     paths:
@@ -56,9 +58,57 @@ permissions:
   contents: read
 
 jobs:
+  # works out which reels changed in this push (every commit of the push) and hands them to the render jobs as a list
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      reels: ${{ steps.list.outputs.reels }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List the reels to render
+        id: list
+        env:
+          EVENT: ${{ github.event_name }}
+          NAME: ${{ inputs.name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -e
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            LIST="$NAME"
+          else
+            BASE="$BEFORE"
+            if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+              BASE="HEAD^"
+            fi
+            LIST=$(git diff --name-only --diff-filter=AM "$BASE" HEAD -- 'reels/*/index.html' 'reels/*/video.json' 'reels/*/audio.json' | cut -d/ -f2 | sort -u)
+          fi
+          for n in $LIST; do
+            [[ "$n" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "Bad reel name: $n"; exit 1; }
+          done
+          if [ -z "$LIST" ]; then
+            echo "No reel changed in this run: nothing to render."
+            JSON='[]'
+          else
+            JSON=$(printf '%s\n' $LIST | jq -R . | jq -sc .)
+          fi
+          echo "Reels to render, one job each: $JSON"
+          echo "reels=$JSON" >> "$GITHUB_OUTPUT"
+
   render:
+    needs: plan
+    if: ${{ needs.plan.outputs.reels != '[]' }}
+    name: Render ${{ matrix.reel }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      max-parallel: 1      # one reel at a time, in order
+      fail-fast: false     # a failed reel never stops the ones after it
+      matrix:
+        reel: ${{ fromJson(needs.plan.outputs.reels) }}
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -67,18 +117,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
           lfs: true
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Prepare reel folders
-        id: prep
+      - name: Prepare reel folder
         env:
           EVENT: ${{ github.event_name }}
-          NAME: ${{ inputs.name }}
+          NAME: ${{ matrix.reel }}
           HTML: ${{ inputs.html }}
           W: ${{ inputs.width }}
           H: ${{ inputs.height }}
@@ -86,27 +134,18 @@ jobs:
           DUR: ${{ inputs.duration }}
         run: |
           set -e
-          if [ "$EVENT" = "workflow_dispatch" ]; then
-            LIST="$NAME"
-          else
-            LIST=$(git diff --name-only HEAD^ HEAD -- 'reels/*/index.html' 'reels/*/video.json' 'reels/*/audio.json' | cut -d/ -f2 | sort -u)
+          n="$NAME"
+          [[ "$n" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "Bad reel name: $n"; exit 1; }
+          mkdir -p "reels/$n"
+          if [ "$EVENT" = "workflow_dispatch" ] && [ -n "$HTML" ]; then
+            printf '%s' "$HTML" > "reels/$n/index.html"
           fi
-          for n in $LIST; do
-            [[ "$n" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "Bad reel name: $n"; exit 1; }
-            mkdir -p "reels/$n"
-            if [ "$EVENT" = "workflow_dispatch" ] && [ -n "$HTML" ]; then
-              printf '%s' "$HTML" > "reels/$n/index.html"
-            fi
-            [ -f "reels/$n/index.html" ] || { echo "reels/$n/index.html missing"; exit 1; }
-            if [ ! -f "reels/$n/video.json" ]; then
-              echo "{\"width\":${W:-1080},\"height\":${H:-1920},\"fps\":${FPS:-30},\"duration\":${DUR:-10}}" > "reels/$n/video.json"
-            fi
-          done
-          if [ -z "$LIST" ]; then echo "No reel changed in this run: nothing to render."; fi
-          echo "list=$(echo $LIST)" >> "$GITHUB_OUTPUT"
+          [ -f "reels/$n/index.html" ] || { echo "reels/$n/index.html missing"; exit 1; }
+          if [ ! -f "reels/$n/video.json" ]; then
+            echo "{\"width\":${W:-1080},\"height\":${H:-1920},\"fps\":${FPS:-30},\"duration\":${DUR:-10}}" > "reels/$n/video.json"
+          fi
 
       - name: Install FFmpeg
-        if: ${{ steps.prep.outputs.list != '' }}
         run: |
           # no apt-get update first (slow); fall back to it only if the install fails
           sudo apt-get install -y --no-install-recommends ffmpeg || { sudo apt-get update -y && sudo apt-get install -y --no-install-recommends ffmpeg; }
@@ -114,7 +153,6 @@ jobs:
       # ---- sound library: cached, re-downloaded only when the release zips change ----
       - name: Check sound library version
         id: snd
-        if: ${{ steps.prep.outputs.list != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -126,14 +164,12 @@ jobs:
 
       - name: Restore sound library cache
         id: sndcache
-        if: ${{ steps.prep.outputs.list != '' }}
         uses: actions/cache/restore@v4
         with:
           path: .sound-cache
           key: sounds-${{ steps.snd.outputs.key }}
 
       - name: Fetch and unpack sound library
-        if: ${{ steps.prep.outputs.list != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
           HIT: ${{ steps.sndcache.outputs.cache-hit }}
@@ -158,7 +194,7 @@ jobs:
           done
 
       - name: Save sound library cache
-        if: ${{ steps.prep.outputs.list != '' && steps.snd.outputs.key != 'none' && steps.sndcache.outputs.cache-hit != 'true' }}
+        if: ${{ steps.snd.outputs.key != 'none' && steps.sndcache.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         with:
           path: .sound-cache
@@ -167,11 +203,9 @@ jobs:
       # ---- Playwright browser + npm downloads ----
       - name: Find latest Playwright version
         id: pwv
-        if: ${{ steps.prep.outputs.list != '' }}
         run: echo "v=$(npm view playwright version)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Playwright browser and npm downloads
-        if: ${{ steps.prep.outputs.list != '' }}
         uses: actions/cache@v4
         with:
           path: |
@@ -180,21 +214,20 @@ jobs:
           key: pw-${{ runner.os }}-${{ steps.pwv.outputs.v }}
 
       # ---- voice-over clips: a line that didn't change keeps its audio (faster, and the same voice every time) ----
-      # Restored from the newest earlier run and saved again at the end of this run, even if the run failed,
+      # Restored from the newest earlier job and saved again at the end of this job, even if the job failed,
       # so a retry after a rate-limit failure continues where it stopped.
       - name: Restore voice-over clips
-        if: ${{ steps.prep.outputs.list != '' && env.GEMINI_API_KEY != '' }}
+        if: ${{ env.GEMINI_API_KEY != '' }}
         uses: actions/cache/restore@v4
         with:
           path: .tts-cache
-          key: tts-${{ github.run_id }}-${{ github.run_attempt }}
+          key: tts-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.reel }}
           restore-keys: |
             tts-
 
-      - name: Render reels
-        if: ${{ steps.prep.outputs.list != '' }}
+      - name: Render reel
         env:
-          LIST: ${{ steps.prep.outputs.list }}
+          LIST: ${{ matrix.reel }}
           GEMINI_VOICE: ${{ vars.GEMINI_VOICE }}
           GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL || 'gemini-3.8-flash-tts' }}
           TTS_CACHE_DIR: ${{ github.workspace }}/.tts-cache
@@ -207,7 +240,7 @@ jobs:
             [ -f package.json ] || echo '{"name":"video","private":true}' > package.json
             npm i playwright
             if [ -z "$PW" ]; then
-              npx playwright install --with-deps chromium   # system libraries once per run
+              npx playwright install --with-deps chromium   # system libraries once per job
               PW=1
             else
               npx playwright install chromium
@@ -230,24 +263,23 @@ jobs:
           done
 
       - name: Save voice-over clips
-        if: ${{ always() && steps.prep.outputs.list != '' && env.GEMINI_API_KEY != '' && hashFiles('.tts-cache/**') != '' }}
+        if: ${{ always() && env.GEMINI_API_KEY != '' && hashFiles('.tts-cache/**') != '' }}
         uses: actions/cache/save@v4
         with:
           path: .tts-cache
-          key: tts-${{ github.run_id }}-${{ github.run_attempt }}
+          key: tts-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.reel }}
 
-      - name: Upload reels
-        if: ${{ steps.prep.outputs.list != '' }}
+      - name: Upload reel
         uses: actions/upload-artifact@v4
         with:
-          name: reels
-          path: reels/*/video.mp4
+          name: reel-${{ matrix.reel }}
+          path: reels/${{ matrix.reel }}/video.mp4
           if-no-files-found: error
 
       - name: Publish to YouTube Shorts + Instagram Reels via Buffer
-        if: ${{ steps.prep.outputs.list != '' && env.BUFFER_API_KEY != '' }}
+        if: ${{ env.BUFFER_API_KEY != '' }}
         env:
-          LIST: ${{ steps.prep.outputs.list }}
+          LIST: ${{ matrix.reel }}
           CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
           BUFFER_CHANNEL_ID: ${{ vars.BUFFER_CHANNEL_ID }}
           BUFFER_INSTAGRAM_CHANNEL_ID: ${{ vars.BUFFER_INSTAGRAM_CHANNEL_ID }}
