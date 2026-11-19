@@ -50,6 +50,31 @@ Infer what the user hasn't said from the request and ask when unsure. Then follo
 
 Setting up the project folder, which library for which look, springs and easing, music, fonts and which frames to check: `references/practice.md` and `references/tech-stack.md`.
 
+## Voice-over, sound effects and music (reels made through GitHub)
+
+Pushing `reels/<name>/index.html` (+ `video.json`, `audio.json`) runs `.github/workflows/make-reel.yml`, which adds the sound for you: voice-over (tts.mjs) → mix (mix.mjs) → render. What the reel has to provide:
+
+- **Voice-over** (when the `GEMINI_API_KEY` secret is set): keep the spoken lines in a top-level `const TXT=[...]`, one entry per caption, starting at 0.5 s (`let cs=.5`). Take each line's length from the voice: `d=(window.__TIMING&&window.__TIMING[i])||<your own estimate>`. The audio then decides the timing, so voice, captions and animation stay in sync.
+- **Sound library:** `sounds/` holds ~3000 sound effects and music tracks. Don't list folders. Read `sounds/CATALOG.md` (folders and counts), then only the `sounds/index/<folder>.txt` you need (`<path> <length>` per line), or search with `search_code` for a keyword with `path:sounds/index`.
+- **Cues:** write `reels/<name>/audio.json` next to `index.html`:
+
+```json
+{
+  "bgm": "bgm/epic/dark-ambient",
+  "bgmVolume": 0.15,
+  "sfx": [
+    { "line": 0, "sound": "sfx/whoosh/whoosh-01", "volume": 0.8 },
+    { "line": 13, "offset": 0.2, "sound": "sfx/impact/boom-02" },
+    { "at": 12.5, "sound": "sfx/ui/ding", "dur": 2 }
+  ]
+}
+```
+
+  - `line` + `offset` places an effect at the start of that caption line (plus offset seconds) so it follows the voice; `at` is absolute seconds. `dur` caps a long effect (default 6 s).
+  - `sound` is a path from an index file, extension optional. A folder, a bare file name or a keyword also works (a matching file is picked, always the same for this reel).
+  - Pick one background track that fits the mood; it ducks under the voice by itself. Use effects sparingly, on beats the viewer should feel (a reveal, a hit, a scene change), not on every line. Keep volumes low enough that the voice stays clear.
+  - A plain `music.wav`/`music.mp3` in the reel folder still works as background music.
+
 ## What earlier videos left behind
 
 References, not templates. Design for this request first; look here when unsure or when the user can't say what look they want:

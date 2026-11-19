@@ -1,12 +1,15 @@
 name: Make Reel
 
 # Two ways to trigger:
-# 1) Push (chat commits reels/<name>/index.html [+ video.json, music.wav|mp3]) -> renders automatically.
+# 1) Push (chat commits reels/<name>/index.html [+ video.json, audio.json, music.wav|mp3]) -> renders automatically.
 # 2) Manual run with `name` (+ optional inline `html` payload) -> renders that reel.
 #
 # Voice-over: if the repo secret GEMINI_API_KEY is set, each reel's caption lines (TXT in index.html)
 # are spoken with Gemini TTS and the video timing follows the voice. Without the secret, nothing changes.
 # Optional repo variables: GEMINI_VOICE (default Kore), GEMINI_TTS_MODEL.
+#
+# Sound: reels/<name>/audio.json can add background music and sound effects from the sounds/ library
+# (see skills/code-video/SKILL.md). Zips in sounds/ are unpacked before rendering.
 #
 # YouTube: if the repo secret BUFFER_API_KEY is set, each rendered reel is uploaded to Cloudinary (secret CLOUDINARY_URL,
 # because Buffer only accepts a public video URL) and scheduled on your YouTube channel via Buffer 1 minute later.
@@ -16,6 +19,7 @@ on:
     paths:
       - 'reels/*/index.html'
       - 'reels/*/video.json'
+      - 'reels/*/audio.json'
   workflow_dispatch:
     inputs:
       name:
@@ -50,6 +54,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          lfs: true
 
       - uses: actions/setup-node@v4
         with:
@@ -57,6 +62,14 @@ jobs:
 
       - name: Install FFmpeg
         run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
+
+      - name: Unpack sound zips
+        run: |
+          shopt -s nullglob
+          for z in sounds/*.zip; do
+            d="${z%.zip}"
+            [ -d "$d" ] || unzip -q "$z" -d "$d"
+          done
 
       - name: Prepare reel folders
         id: prep
@@ -73,7 +86,7 @@ jobs:
           if [ "$EVENT" = "workflow_dispatch" ]; then
             LIST="$NAME"
           else
-            LIST=$(git diff --name-only HEAD^ HEAD -- 'reels/*/index.html' 'reels/*/video.json' | cut -d/ -f2 | sort -u)
+            LIST=$(git diff --name-only HEAD^ HEAD -- 'reels/*/index.html' 'reels/*/video.json' 'reels/*/audio.json' | cut -d/ -f2 | sort -u)
           fi
           for n in $LIST; do
             [[ "$n" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "Bad reel name: $n"; exit 1; }
@@ -104,17 +117,15 @@ jobs:
             npx playwright install --with-deps chromium
             MUSIC=""
             for a in music.wav music.mp3; do if [ -f "$a" ]; then MUSIC="$a"; fi; done
-            AUDIO=""
             if [ -n "$GEMINI_API_KEY" ]; then
               # voice-over: writes voice.wav + timing.json (render.mjs picks timing.json up automatically)
               node "$S/tts.mjs" index.html voice.wav timing.json
-              AUDIO="--audio voice.wav"
-              if [ -n "$MUSIC" ]; then
-                ffmpeg -y -loglevel error -i voice.wav -stream_loop -1 -i "$MUSIC" -filter_complex \
-                  "[0:a]aresample=44100,aformat=channel_layouts=stereo[v];[1:a]aresample=44100,aformat=channel_layouts=stereo,volume=0.15[m];[v][m]amix=inputs=2:duration=first:normalize=0[o]" \
-                  -map "[o]" mix.wav
-                AUDIO="--audio mix.wav"
-              fi
+            fi
+            # voice + music + sound effects -> mix.wav (writes nothing when there is nothing to mix)
+            node "$S/mix.mjs" mix.wav
+            AUDIO=""
+            if [ -f mix.wav ]; then
+              AUDIO="--audio mix.wav"
             elif [ -n "$MUSIC" ]; then
               AUDIO="--audio $MUSIC"
             fi
