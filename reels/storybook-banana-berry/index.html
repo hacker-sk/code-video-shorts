@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset='utf-8'><style>html,body{margin:0;background:#f3e9d2;overflow:hidden}canvas{display:block}</style></head><body><script src='node_modules/p5/lib/p5.min.js'></script><script>
+const TXT=[
+"Plot twist: bananas are BERRIES.",
+"Strawberries are not.",
+"Berries have seeds inside the flesh.",
+"Banana? Tiny seeds inside. Berry.",
+"Strawberry? Seeds on the outside.",
+"Now tell a friend."];
+let cs=.5;const C=TXT.map((tx,i)=>{const n=tx.split(' ').length,d=(window.__TIMING&&window.__TIMING[i])||.4+.3*n;const o={tx,n,d,s:cs,e:cs+d};cs+=d;return o});
+const W=1080,H=1920,INK='#3a3128',RED='#c8392b';let T=0;
+function setup(){createCanvas(W,H);pixelDensity(1);noLoop();textFont('Georgia');window.__ready=true}
+function draw(){frame(T)}
+window.render=t=>{T=t;redraw();return Math.floor(t*12)};
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),eo=x=>1-Math.pow(1-x,3);
+const colA=(h,a)=>{const c=color(h);c.setAlpha(a);return c};
+function jl(pts,w,col){noFill();strokeWeight(w);stroke(col);strokeJoin(ROUND);for(let p=0;p<2;p++){beginShape();pts.forEach(q=>vertex(q[0]+random(-3,3),q[1]+random(-3,3)));endShape()}}
+function wash(pts,col,a){noStroke();for(let l=0;l<4;l++){fill(colA(col,a));beginShape();pts.forEach(q=>vertex(q[0]+random(-7,7),q[1]+random(-7,7)));endShape(CLOSE)}}
+const qb=(a,c,b,n)=>{const r=[];for(let i=0;i<=n;i++){const t=i/n,u=1-t;r.push([u*u*a[0]+2*u*t*c[0]+t*t*b[0],u*u*a[1]+2*u*t*c[1]+t*t*b[1]])}return r};
+const circ=(cx,cy,rx,ry,n,a0,turns)=>{const r=[];for(let i=0;i<=n;i++){const a=a0+i/n*TWO_PI*turns;r.push([cx+Math.cos(a)*rx,cy+Math.sin(a)*ry])}return r};
+const ring=(cx,cy,rx,ry,col)=>jl(circ(cx,cy,rx,ry,48,-1.2,1.1),10,col);
+const spark=(x,y,r)=>{jl([[x-r,y],[x+r,y]],6,'#e0a82e');jl([[x,y-r],[x,y+r]],6,'#e0a82e')};
+function banana(cx,cy,s){const a=[cx-300*s,cy-70*s],b=[cx+300*s,cy-70*s],pts=qb(a,[cx,cy+280*s],b,22).concat(qb(b,[cx,cy+40*s],a,22));wash(pts,'#f2cf3a',42);jl(pts,6,INK);jl([a,[a[0]-26*s,a[1]-46*s]],14,'#6b4f1d');jl([b,[b[0]+16*s,b[1]+10*s]],12,'#4a3a1a')}
+function berry(cx,cy,s){const pts=[];for(let i=0;i<=36;i++){const th=i/36*TWO_PI,f=.62+.38*(-Math.sin(th));pts.push([cx+230*s*Math.cos(th)*f,cy+290*s*Math.sin(th)])}
+wash(pts,'#d94a4a',42);jl(pts,6,INK);
+wash([[cx-110*s,cy-262*s],[cx-55*s,cy-345*s],[cx,cy-285*s],[cx+55*s,cy-345*s],[cx+110*s,cy-262*s],[cx,cy-240*s]],'#4f9a4a',55);
+noStroke();fill(colA('#f2d16b',230));[.35,.62,.84].forEach((r,ri)=>{for(let k=0;k<7;k++){const th=k/7*TWO_PI+ri*.9,f=.62+.38*(-Math.sin(th));ellipse(cx+230*s*r*Math.cos(th)*f,cy+290*s*r*Math.sin(th),14*s,22*s)}})}
+function crossSec(cx,cy,s){const peel=circ(cx,cy,250*s,250*s,40,0,1),fl=circ(cx,cy,215*s,215*s,40,0,1);wash(peel,'#f2cf3a',45);wash(fl,'#f8efc0',55);jl(peel,5,INK);jl(fl,3,'#8a7a40');noStroke();fill(INK);for(let i=0;i<3;i++){const a=i*2.1+.4;ellipse(cx+Math.cos(a)*40*s,cy+Math.sin(a)*40*s,16*s,16*s)}}
+function label(s,x,y,col){noStroke();fill(col);textAlign(CENTER);textStyle(ITALIC);textSize(56);text(s,x,y)}
+function frame(t){
+const k=Math.floor(t*12),q=k/12;
+randomSeed(7);background('#f3e9d2');noStroke();for(let i=0;i<500;i++){fill(120,100,60,random(8,26));circle(random(W),random(H),random(1.5,5))}
+randomSeed(1000+k);
+let idx=C.length-1;for(let i=0;i<C.length;i++)if(q<C[i].e){idx=i;break}
+const ch=C[idx],lt=Math.max(0,q-ch.s),pop=.85+.15*eo(cl(lt/.35)),cx=540,cy=760;
+if(idx==0){banana(cx,cy,pop);for(let i=0;i<4;i++)spark([160,920,200,880][i],[520,560,1000,1020][i]+Math.sin(q*6+i)*8,24+8*Math.sin(q*5+i))}
+else if(idx==1){berry(cx,cy+20,pop);const p=eo(cl(lt/.45));jl([[250,420],[250+540*p,420+700*p]],22,RED);jl([[790,420],[790-540*p,420+700*p]],22,RED)}
+else if(idx==2){crossSec(cx,cy,pop);label('a banana, sliced',cx,cy+360,INK)}
+else if(idx==3){crossSec(cx,cy,1);if(lt>.25)ring(cx,cy,100,100,RED);label('tiny seeds, inside',cx,cy+360,RED)}
+else if(idx==4){berry(cx,cy+20,1);if(lt>.3)ring(cx,cy+20,290,360,RED);label('seeds, outside',cx,cy+440,RED)}
+else{banana(cx,560,.55);berry(cx,1070,.48);spark(180,420,26);spark(900,1300,26);spark(880,500,20)}
+textStyle(ITALIC);textSize(46);textAlign(CENTER);noStroke();fill(colA(INK,150));text('FRUIT FACTS',540,150);
+textStyle(BOLD);textSize(84);textAlign(LEFT);
+const sp=textWidth(' '),L=[];let cur=[],w=0;ch.tx.split(' ').forEach(s=>{const ww=textWidth(s);if(cur.length&&w+sp+ww>940){L.push({cur,w});cur=[];w=0}w+=(cur.length?sp:0)+ww;cur.push({s,ww})});L.push({cur,w});
+const a=cl(lt/.25)*(idx==C.length-1?1:cl((ch.d-lt)/.2)),lh=104,y0=1560-L.length*lh/2+84;
+L.forEach((ln,i)=>{let x=540-ln.w/2;ln.cur.forEach(o=>{noStroke();fill(colA(/^[A-Z]{3,}[.,!?]?$/.test(o.s)?RED:INK,255*a));text(o.s,x,y0+i*lh+(1-a)*20);x+=o.ww+sp})});
+if(t<.5){noStroke();fill(0,0,0,255*(1-t/.5));rect(0,0,W,H)}
+}
+</script></body></html>

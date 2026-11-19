@@ -1,0 +1,9 @@
+{
+  "bgm": "bgm/AloneInTheUnlimitedMountains",
+  "bgmVolume": 0.15,
+  "sfx": [
+    { "line": 0, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.5 },
+    { "line": 2, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.35, "dur": 2.5 },
+    { "line": 4, "offset": 0.2, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.4 }
+  ]
+}

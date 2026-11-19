@@ -1,0 +1,10 @@
+{
+  "bgm": "bgm/AloneInTheUnlimitedMountains",
+  "bgmVolume": 0.14,
+  "sfx": [
+    { "line": 0, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Bells", "volume": 0.4 },
+    { "line": 2, "offset": -0.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 5, "offset": -0.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 5, "offset": 1.0, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.4 }
+  ]
+}

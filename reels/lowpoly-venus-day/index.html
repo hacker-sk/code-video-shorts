@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset='utf-8'><style>html,body{margin:0;background:#05060f;overflow:hidden}canvas{display:block}#cap{position:absolute;left:60px;right:60px;top:1330px;text-align:center;font:800 78px/1.18 DejaVu Sans,Arial,sans-serif;color:#fff;text-shadow:0 4px 20px #000,0 0 6px #000}#cap b{color:#ffd45e;font-weight:800}#hud{position:absolute;left:0;right:0;top:150px;display:flex;justify-content:center;gap:24px;font:700 38px DejaVu Sans,Arial,sans-serif}.chip{padding:18px 26px;border-radius:24px;background:rgba(255,255,255,.12);color:#e3e7ff;border:3px solid rgba(255,255,255,.22)}</style></head><body><canvas id='c' width='1080' height='1920'></canvas><div id='hud'><div class='chip' id='cd'>DAY = 243 EARTH DAYS</div><div class='chip' id='cy'>YEAR = 225</div></div><div id='cap'></div><script type='module'>
+import * as THREE from './node_modules/three/build/three.module.js';
+const TXT=[
+"A day on Venus",
+"is longer than its YEAR.",
+"Venus spins once every 243 Earth days.",
+"But circles the Sun in just 225.",
+"So the day outlasts the year.",
+"Time gets weird out there."];
+let cs=.5;const C=TXT.map((tx,i)=>{const n=tx.split(' ').length,d=(window.__TIMING&&window.__TIMING[i])||.4+.3*n;const o={tx,n,d,s:cs,e:cs+d};cs+=d;return o});
+const r=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(1080,1920,false);
+const sc=new THREE.Scene();sc.background=new THREE.Color(0x070a1f);
+const cam=new THREE.PerspectiveCamera(50,1080/1920,.1,300);
+sc.add(new THREE.AmbientLight(0x7078b8,1.1));
+sc.add(new THREE.PointLight(0xfff0cc,90,0,2));
+const fm=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,flatShading:true,roughness:.85},o||{}));
+const sun=new THREE.Mesh(new THREE.IcosahedronGeometry(1.5,1),fm(0xffc94a,{emissive:0xff9a1a,emissiveIntensity:1.2}));sc.add(sun);
+const halo=new THREE.Mesh(new THREE.IcosahedronGeometry(2.2,1),new THREE.MeshBasicMaterial({color:0xffb347,transparent:true,opacity:.16}));sc.add(halo);
+function planet(rad,col){const g=new THREE.Group();g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(rad,1),fm(col)));const pin=new THREE.Mesh(new THREE.BoxGeometry(.9,.26,.26),fm(0xff3b3b,{emissive:0x771111}));pin.position.x=rad+.3;g.add(pin);sc.add(g);return g}
+const venus=planet(1,0xe8a35c),earth=planet(.8,0x3a7bd5);
+function ring(R){const p=[];for(let i=0;i<=96;i++){const a=i/96*Math.PI*2;p.push(new THREE.Vector3(Math.cos(a)*R,0,Math.sin(a)*R))}sc.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(p),new THREE.LineBasicMaterial({color:0x8890ff,transparent:true,opacity:.3})))}
+ring(4);ring(6.6);
+let sd=42;const rn=()=>{sd=(sd*1664525+1013904223)>>>0;return sd/4294967296};
+const sp=[];for(let i=0;i<500;i++){const u=rn()*2-1,a=rn()*6.2832,rr=Math.sqrt(1-u*u),R=70+rn()*40;sp.push(Math.cos(a)*rr*R,u*R,Math.sin(a)*rr*R)}
+const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));sc.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:.5})));
+const cap=document.getElementById('cap'),cd=document.getElementById('cd'),cy=document.getElementById('cy');
+window.render=t=>{
+const th=t*.9;venus.position.set(Math.cos(th)*4,0,Math.sin(th)*4);venus.rotation.y=th*.926;
+const te=th*.617;earth.position.set(Math.cos(te)*6.6,0,Math.sin(te)*6.6);earth.rotation.y=-te*8;
+sun.rotation.y=t*.3;halo.scale.setScalar(1+.04*Math.sin(t*3));
+const a=t*.12+.6;cam.position.set(Math.sin(a)*19,23,Math.cos(a)*19);cam.lookAt(0,-2.4,0);r.render(sc,cam);
+let idx=C.length-1;for(let i=0;i<C.length;i++)if(t<C[i].e){idx=i;break}
+const ch=C[idx],lt=Math.max(0,t-ch.s);
+if(cap.dataset.i!=String(idx)){cap.dataset.i=String(idx);cap.innerHTML=ch.tx.replace(/([A-Z]{3,})/g,'<b>$1</b>')}
+const o=Math.min(1,lt/.15)*(idx==C.length-1?1:Math.min(1,(ch.d-lt)/.12));cap.style.opacity=o;cap.style.transform='translateY('+((1-o)*24)+'px)';
+cd.style.opacity=idx>=2?1:.3;cy.style.opacity=idx>=3?1:.3;
+};
+window.__ready=true;
+</script></body></html>

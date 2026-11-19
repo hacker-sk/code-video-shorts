@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset='utf-8'><style>*{box-sizing:border-box}html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#17100a;font-family:Georgia,DejaVu Serif,serif}#desk{position:absolute;left:0;top:0;width:1080px;height:1920px;background:radial-gradient(1000px 1200px at 50% 40%,#3b2b1d,#17100a)}#book{position:absolute;left:60px;top:130px;width:960px;height:1380px;perspective:2400px}.pg{position:absolute;left:0;top:0;width:960px;height:1380px;background:#f2ead8;border-radius:6px 22px 22px 6px;box-shadow:0 30px 80px rgba(0,0,0,.55);transform-origin:left center;backface-visibility:hidden;color:#2a211a;overflow:hidden}.pg:before{content:'';position:absolute;left:26px;top:26px;right:26px;bottom:26px;border:3px double #9b2d20;opacity:.45}.k{position:absolute;left:0;right:0;top:80px;text-align:center;font-size:30px;letter-spacing:10px;color:#9b2d20}.c{position:absolute;left:0;right:0;text-align:center}.yr{font-size:118px;font-weight:700;line-height:1}.lb{font-size:46px;font-style:italic;color:#6b5a48;margin-top:10px}#cap{position:absolute;left:70px;right:70px;top:1580px;text-align:center;color:#f3e6c8;font-size:64px;line-height:1.2;text-shadow:0 3px 14px #000}</style></head><body><div id='desk'></div><div id='book'>
+<div class='pg' id='p2' style='z-index:1'><div class='k'>THE MATH</div><div class='c' style='top:170px;font-size:110px;font-weight:700'>Two gaps</div><svg id='ax' width='840' height='700' viewBox='0 0 840 700' style='position:absolute;left:60px;top:430px;font-family:Georgia,DejaVu Serif,serif'><line x1='30' y1='420' x2='810' y2='420' stroke='#2a211a' stroke-width='4'/><g id='g0'><circle cx='37' cy='420' r='14' fill='#2a211a'/><text x='10' y='480' font-size='40' font-weight='700' fill='#2a211a'>c. 2560 BC</text><text x='10' y='526' font-size='30' font-style='italic' fill='#6b5a48'>Great Pyramid</text></g><g id='g1'><circle cx='462' cy='420' r='14' fill='#9b2d20'/><text x='462' y='480' text-anchor='middle' font-size='40' font-weight='700' fill='#9b2d20'>69 BC</text><text x='462' y='526' text-anchor='middle' font-size='30' font-style='italic' fill='#6b5a48'>Cleopatra</text></g><g id='g2'><circle cx='810' cy='420' r='14' fill='#1f6f6b'/><text x='830' y='480' text-anchor='end' font-size='40' font-weight='700' fill='#1f6f6b'>1969</text><text x='830' y='526' text-anchor='end' font-size='30' font-style='italic' fill='#6b5a48'>Apollo 11</text></g><path id='b1' pathLength='1' d='M37 385V350H462V385' fill='none' stroke='#9b2d20' stroke-width='6' stroke-dasharray='1' stroke-dashoffset='1'/><path id='b2' pathLength='1' d='M462 385V290H810V385' fill='none' stroke='#1f6f6b' stroke-width='6' stroke-dasharray='1' stroke-dashoffset='1'/><text id='l1' x='250' y='328' text-anchor='middle' font-size='46' font-weight='700' fill='#9b2d20'>about 2,500 years</text><text id='l2' x='636' y='268' text-anchor='middle' font-size='46' font-weight='700' fill='#1f6f6b'>about 2,000 years</text></svg></div>
+<div class='pg' id='p1' style='z-index:2'><div class='k'>THREE DATES</div><div class='c r' id='r0' style='top:200px'><div class='yr'>c. 2560 BC</div><div class='lb'>The Great Pyramid</div></div><div class='c r' id='r1' style='top:560px'><div class='yr' style='color:#9b2d20'>69-30 BC</div><div class='lb'>Cleopatra VII</div></div><div class='c r' id='r2' style='top:920px'><div class='yr' style='color:#1f6f6b'>1969</div><div class='lb'>Apollo 11 lands</div></div></div>
+<div class='pg' id='p0' style='z-index:3'><div class='k'>HISTORY NOTE No. 1</div><div class='c a0' style='top:230px'><div style='font-size:150px;font-weight:700;line-height:1'>Cleopatra</div><div style='font-size:52px;font-style:italic;margin-top:40px'>lived closer in time to</div><div style='font-size:120px;font-weight:700;color:#1f6f6b;margin-top:30px'>Apollo 11</div></div><div class='c a1' style='top:870px'><div style='font-size:52px;font-style:italic'>than to the</div><div style='font-size:104px;font-weight:700;color:#9b2d20;margin-top:20px;line-height:1.05'>Great Pyramid</div></div></div>
+</div><div id='cap'></div><script>
+const TXT=[
+"Cleopatra lived closer to Apollo 11",
+"than to the Great Pyramid.",
+"Pyramid: about 2560 BC.",
+"Cleopatra: 69 to 30 BC.",
+"Moon landing: 1969.",
+"That's 2,500 years versus 2,000."];
+let cs=.5;const C=TXT.map((tx,i)=>{const n=tx.split(' ').length,d=(window.__TIMING&&window.__TIMING[i])||.4+.3*n;const o={tx,n,d,s:cs,e:cs+d};cs+=d;return o});
+const $=id=>document.getElementById(id);
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+const spr=(t,t0,w,z)=>{w=w||13;z=z||.6;const x=t-t0;return x<=0?0:1-Math.exp(-z*w*x)*Math.cos(w*Math.sqrt(1-z*z)*x)};
+const P0=$('p0'),P1=$('p1'),a0=document.querySelector('.a0'),a1=document.querySelector('.a1'),rows=[$('r0'),$('r1'),$('r2')],cap=$('cap'),b1=$('b1'),b2=$('b2'),l1=$('l1'),l2=$('l2'),gs=[$('g0'),$('g1'),$('g2')];
+const T1=C[2].s-.05,T2=C[5].s-.05;
+window.render=t=>{
+const rise=(el,t0,dx,dy)=>{const s=spr(t,t0);el.style.opacity=cl(s*1.6);el.style.transform='translate('+((1-s)*dx)+'px,'+((1-s)*dy)+'px)'};
+P0.style.transform='rotateY('+(-180*ease(cl((t-T1)/.75)))+'deg)';P1.style.transform='rotateY('+(-180*ease(cl((t-T2)/.75)))+'deg)';
+rise(a0,.15,0,50);rise(a1,C[1].s+.05,0,50);
+rows.forEach((el,i)=>rise(el,C[2+i].s+.05,80,0));
+gs.forEach((el,i)=>{const s=spr(t,C[5].s+.1+i*.12);el.style.opacity=cl(s*1.6)});
+const p1=ease(cl((t-C[5].s-.45)/.8)),p2=ease(cl((t-C[5].s-1.2)/.8));
+b1.setAttribute('stroke-dashoffset',String(1-p1));b2.setAttribute('stroke-dashoffset',String(1-p2));l1.setAttribute('opacity',String(cl((p1-.6)*2.5)));l2.setAttribute('opacity',String(cl((p2-.6)*2.5)));
+let idx=C.length-1;for(let i=0;i<C.length;i++)if(t<C[i].e){idx=i;break}
+const ch=C[idx],lt=Math.max(0,t-ch.s);if(cap.dataset.i!=String(idx)){cap.dataset.i=String(idx);cap.textContent=ch.tx}
+const s=spr(t,ch.s,16,.7),out=idx==C.length-1?1:cl((ch.d-lt)/.15);cap.style.opacity=cl(s*1.5)*out;cap.style.transform='translateY('+((1-s)*30)+'px)';
+};
+window.__ready=true;
+</script></body></html>

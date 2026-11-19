@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset='utf-8'><style>*{box-sizing:border-box}html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#0b1020;font-family:DejaVu Sans,Arial,sans-serif;color:#fff}#bg{position:absolute;left:0;top:0;width:1080px;height:1920px;background:radial-gradient(900px 700px at 80% 10%,#312e81 0%,transparent 60%),radial-gradient(900px 800px at 10% 70%,#0e7490 0%,transparent 55%),#0b1020}#hdr{position:absolute;top:170px;left:0;right:0;text-align:center;font-weight:800;font-size:46px;letter-spacing:14px;color:#a5b4fc}#card{position:absolute;left:90px;top:330px;width:900px;height:1050px;border-radius:56px;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.15);box-shadow:0 40px 120px rgba(0,0,0,.5)}#tabs{position:absolute;left:30px;top:30px;width:840px;height:90px;border-radius:45px;background:rgba(0,0,0,.3)}#pill{position:absolute;top:6px;left:6px;width:268px;height:78px;border-radius:39px;background:linear-gradient(135deg,#6366f1,#22d3ee)}.tab{position:absolute;top:0;width:280px;height:90px;line-height:90px;text-align:center;font-weight:700;font-size:38px;color:#94a3b8}#ring{position:absolute;left:100px;top:210px;width:700px;height:700px}#big{position:absolute;left:0;right:0;top:455px;height:170px;line-height:170px;text-align:center;font-weight:800;font-size:170px}#sub{position:absolute;left:0;right:0;top:660px;text-align:center;font-size:40px;color:#94a3b8}#cta{position:absolute;left:280px;top:1440px;width:520px;height:120px;border-radius:60px;background:linear-gradient(135deg,#f43f5e,#fb923c);font-weight:800;font-size:46px;line-height:120px;text-align:center;opacity:0}#cap{position:absolute;left:70px;right:70px;top:1640px;text-align:center;font-weight:800;font-size:68px;line-height:1.18;text-shadow:0 4px 18px #000}#cur{position:absolute;left:0;top:0;z-index:9;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}#rip{position:absolute;left:0;top:0;width:90px;height:90px;border:6px solid #67e8f9;border-radius:50%;opacity:0;z-index:8}</style></head><body><div id='bg'></div><div id='hdr'>BRAIN BUDGET</div><div id='card'><div id='tabs'><div id='pill'></div><div class='tab' id='t0' style='left:0'>Weight</div><div class='tab' id='t1' style='left:280px'>Energy</div><div class='tab' id='t2' style='left:560px'>Ratio</div></div><svg id='ring' viewBox='0 0 400 400'><circle cx='200' cy='200' r='150' fill='none' stroke='rgba(255,255,255,.08)' stroke-width='26'/><circle cx='200' cy='200' r='110' fill='none' stroke='rgba(255,255,255,.08)' stroke-width='26'/><circle id='ce' cx='200' cy='200' r='150' fill='none' stroke='#fbbf24' stroke-width='26' stroke-linecap='round' stroke-dasharray='0 2000' transform='rotate(-90 200 200)'/><circle id='cw' cx='200' cy='200' r='110' fill='none' stroke='#38bdf8' stroke-width='26' stroke-linecap='round' stroke-dasharray='0 2000' transform='rotate(-90 200 200)'/></svg><div id='big'>2%</div><div id='sub'>of your body weight</div></div><div id='cta'>Follow for more</div><div id='cap'></div><div id='rip'></div><svg id='cur' width='40' height='56' viewBox='0 0 28 42'><path d='M0 0L0 34L9 26L15 40L21 37L15 24L27 24Z' fill='#fff' stroke='#111' stroke-width='2'/></svg><script>
+const TXT=[
+"Your brain is only 2% of your weight.",
+"But it burns about 20% of your energy.",
+"That's ten times its share.",
+"Even when you sit still,",
+"your brain keeps the lights on.",
+"Follow for more."];
+let cs=.5;const C=TXT.map((tx,i)=>{const n=tx.split(' ').length,d=(window.__TIMING&&window.__TIMING[i])||.4+.3*n;const o={tx,n,d,s:cs,e:cs+d};cs+=d;return o});
+const $=id=>document.getElementById(id);
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2,lerp=(a,b,k)=>a+(b-a)*k;
+const spr=(t,t0,w,z)=>{w=w||15;z=z||.5;const x=t-t0;return x<=0?0:1-Math.exp(-z*w*x)*Math.cos(w*Math.sqrt(1-z*z)*x)};
+const pill=$('pill'),tabs=[$('t0'),$('t1'),$('t2')],ce=$('ce'),cw=$('cw'),big=$('big'),sub=$('sub'),cta=$('cta'),cap=$('cap'),card=$('card'),cur=$('cur'),rip=$('rip');
+const e0=C[0].s+.5,e1=C[1].s+.5,e2=C[2].s+.5,e3=C[5].s+.45,CK=[e0,e1,e2,e3];
+const WP=[{a:0,x:980,y:1200},{a:e0-.05,x:260,y:420},{a:e1-.05,x:540,y:420},{a:e2-.05,x:820,y:420},{a:C[3].s+.9,x:760,y:1100},{a:e3-.05,x:540,y:1500}];
+function cpos(t){let i=0;while(i<WP.length-1&&t>=WP[i+1].a)i++;if(i==WP.length-1)return WP[i];const A=WP[i],Q=WP[i+1],d=A.a+.28;if(t<=d)return A;const k=ease(cl((t-d)/(Q.a-d)));return{x:lerp(A.x,Q.x,k),y:lerp(A.y,Q.y,k)}}
+window.render=t=>{
+const ent=spr(t,.05,12,.7);card.style.transform='translateY('+((1-ent)*140)+'px)';card.style.opacity=cl(ent*1.4);
+const s0=spr(t,e0),s1=spr(t,e1),s2=spr(t,e2);
+pill.style.transform='translateX('+(280*s1+280*s2)+'px)';pill.style.opacity=cl(s0*1.5);
+const act=t>=e2?2:t>=e1?1:t>=e0?0:-1;tabs.forEach((el,i)=>{el.style.color=i==act?'#fff':'#94a3b8'});
+cw.setAttribute('stroke-dasharray',(.02*s0*691.15).toFixed(2)+' 2000');ce.setAttribute('stroke-dasharray',(.2*s1*942.48).toFixed(2)+' 2000');
+cw.style.opacity=t>=e0?1:0;ce.style.opacity=t>=e1?1:0;
+let b='2%',sb='of your body weight',t0=e0;
+if(t>=e2){b='10x';sb='times its share of the weight';t0=e2}else if(t>=e1){b='20%';sb='of your daily energy';t0=e1}
+if(t>=C[3].s)sb='even when you rest';
+big.textContent=b.replace('x','\u00d7');sub.textContent=sb;big.style.opacity=t>=e0?1:0;sub.style.opacity=t>=e0?1:0;
+big.style.transform='scale('+(t<t0?1:1+.3*(1-spr(t,t0,15,.5)))+')';
+const c1=spr(t,C[5].s+.1,14,.55),pr=1-.1*Math.max(0,1-Math.abs(t-e3)/.12);cta.style.transform='scale('+(c1*pr*(1+(t>e3?.03*Math.sin(t*9):0)))+')';cta.style.opacity=cl(c1*2);
+let idx=C.length-1;for(let i=0;i<C.length;i++)if(t<C[i].e){idx=i;break}
+const ch=C[idx],lt=Math.max(0,t-ch.s);if(cap.dataset.i!=String(idx)){cap.dataset.i=String(idx);cap.textContent=ch.tx}
+const sc=spr(t,ch.s,16,.6),out=idx==C.length-1?1:cl((ch.d-lt)/.15);cap.style.opacity=cl(sc*1.5)*out;cap.style.transform='translateY('+((1-sc)*40)+'px)';
+const p=cpos(t);let press=0,rp=-1;CK.forEach(c=>{press=Math.max(press,Math.max(0,1-Math.abs(t-c)/.09));if(t>c&&t<c+.5)rp=(t-c)/.5});
+cur.style.transform='translate('+p.x+'px,'+p.y+'px) scale('+(1-.18*press)+')';
+rip.style.opacity=rp<0?0:1-rp;rip.style.transform='translate('+(p.x-45)+'px,'+(p.y-45)+'px) scale('+(.2+Math.max(rp,0)*1.2)+')';
+};
+window.__ready=true;
+</script></body></html>

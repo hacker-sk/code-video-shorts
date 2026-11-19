@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset='utf-8'><style>html,body{margin:0;background:#02101c;overflow:hidden}canvas{display:block}</style></head><body><canvas id='c' width='1080' height='1920'></canvas><script>
+const TXT=[
+"Sharks are older than TREES.",
+"Sharks appeared about 450 million years ago.",
+"The first trees came later,",
+"around 380 million years ago.",
+"Sharks got a 70 million year head start.",
+"Follow for more wild facts."];
+let cs=.5;const C=TXT.map((tx,i)=>{const n=tx.split(' ').length,d=(window.__TIMING&&window.__TIMING[i])||.4+.3*n;const o={tx,n,d,s:cs,e:cs+d};cs+=d;return o});
+const W=1080,H=1920,G=document.getElementById('c').getContext('2d');
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2,eo=x=>1-Math.pow(1-x,3),lerp=(a,b,k)=>a+(b-a)*k;
+function bgd(t){const gr=G.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#06283d');gr.addColorStop(.55,'#0a4a6e');gr.addColorStop(1,'#02101c');G.fillStyle=gr;G.fillRect(0,0,W,H);
+for(let i=0;i<5;i++){const x=120+i*220+Math.sin(t*.4+i)*30,g2=G.createLinearGradient(0,0,0,1100);g2.addColorStop(0,'rgba(160,230,255,.16)');g2.addColorStop(1,'rgba(160,230,255,0)');G.fillStyle=g2;G.beginPath();G.moveTo(x,0);G.lineTo(x+90,0);G.lineTo(x+240,1100);G.lineTo(x-80,1100);G.closePath();G.fill()}
+G.fillStyle='rgba(200,240,255,.35)';for(let i=0;i<26;i++){const x=(i*97+40)%W+Math.sin(t*1.3+i)*18,y=H-((t*90+i*173)%(H+60));G.beginPath();G.arc(x,y,4+(i%4)*3,0,7);G.fill()}}
+function shark(cx,cy,s,ph){G.save();G.translate(cx,cy+Math.sin(ph*2)*10*s);G.scale(s,s);const tail=Math.sin(ph*4)*14;
+G.beginPath();G.moveTo(170,0);G.lineTo(70,-42);G.lineTo(25,-112);G.lineTo(5,-42);G.lineTo(-95,-26);G.lineTo(-150+tail,-92);G.lineTo(-128+tail*.5,0);G.lineTo(-150+tail,70);G.lineTo(-95,24);G.lineTo(0,38);G.lineTo(42,86);G.lineTo(66,34);G.closePath();
+const gr=G.createLinearGradient(0,-110,0,90);gr.addColorStop(0,'#7fa6c4');gr.addColorStop(.55,'#5f87a6');gr.addColorStop(.56,'#dfeaf2');gr.addColorStop(1,'#c3d4e0');G.fillStyle=gr;G.fill();
+G.fillStyle='#0a1520';G.beginPath();G.arc(112,-10,6,0,7);G.fill();G.strokeStyle='#0a1520';G.lineWidth=3;G.beginPath();G.moveTo(148,6);G.lineTo(122,14);G.stroke();G.restore()}
+function tree(cx,by,s){G.save();G.translate(cx,by);G.scale(s,s);G.fillStyle='#7a4b25';G.fillRect(-16,-70,32,70);
+[['#1f6b3d',-40,150],['#2f9e5b',-100,120],['#43b66f',-160,90]].forEach(a=>{G.fillStyle=a[0];G.beginPath();G.moveTo(-a[2],a[1]);G.lineTo(a[2],a[1]);G.lineTo(0,a[1]-110);G.closePath();G.fill()});G.restore()}
+const mx=m=>90+(500-m)/200*900;
+function cap(ch,lt,last){
+G.font='bold 74px DejaVu Sans,Arial,sans-serif';G.textAlign='left';
+const sp=G.measureText(' ').width,L=[];let cur=[],w=0;
+ch.tx.split(' ').forEach(t=>{const ww=G.measureText(t).width;if(cur.length&&w+sp+ww>940){L.push({cur,w});cur=[];w=0}w+=(cur.length?sp:0)+ww;cur.push({t,ww})});L.push({cur,w});
+const a=Math.min(1,lt/.15)*(last?1:Math.min(1,(ch.d-lt)/.12)),lh=92,y0=1600-L.length*lh/2+72;
+G.globalAlpha=a;G.lineWidth=14;G.lineJoin='round';G.strokeStyle='#02101c';
+L.forEach((ln,i)=>{let x=540-ln.w/2;ln.cur.forEach(o=>{const y=y0+i*lh+(1-a)*20;G.strokeText(o.t,x,y);G.fillStyle=/^[A-Z]{3,}[.,!?]?$/.test(o.t)?'#ffd45e':'#fff';G.fillText(o.t,x,y);x+=o.ww+sp})});G.globalAlpha=1}
+window.render=t=>{
+let idx=C.length-1;for(let i=0;i<C.length;i++)if(t<C[i].e){idx=i;break}
+const ch=C[idx],lt=Math.max(0,t-ch.s);
+bgd(t);G.textAlign='center';
+if(idx==0){shark(540+Math.sin(t*1.2)*60,640,1.5,t);tree(540,1330,1.5);G.fillStyle='#ffd45e';G.font='bold 56px DejaVu Sans,Arial,sans-serif';G.fillText('OLDER',540,930);G.beginPath();G.moveTo(500,960);G.lineTo(580,960);G.lineTo(540,1020);G.closePath();G.fill()}
+else if(idx<5){
+const m=t<C[1].s?500:t<C[1].e?lerp(500,450,ease(cl((t-C[1].s)/C[1].d))):t<C[3].e?lerp(450,380,ease(cl((t-C[2].s)/(C[3].e-C[2].s)))):380;
+G.fillStyle='#fff';G.font='bold 230px DejaVu Sans,Arial,sans-serif';G.fillText(String(Math.round(m)),540,520);G.font='bold 44px DejaVu Sans,Arial,sans-serif';G.fillStyle='#9fd8f5';G.fillText('MILLION YEARS AGO',540,590);
+shark(540+Math.sin(t*.8)*150,800,.8,t);
+G.strokeStyle='#cfe9f7';G.lineWidth=6;G.beginPath();G.moveTo(90,1080);G.lineTo(990,1080);G.stroke();
+G.font='bold 34px DejaVu Sans,Arial,sans-serif';G.fillStyle='#9fd8f5';for(let v=500;v>=300;v-=50){const x=mx(v);G.beginPath();G.moveTo(x,1066);G.lineTo(x,1094);G.stroke();G.fillText(String(v),x,1140)}
+G.fillStyle='#ffd45e';G.beginPath();G.arc(mx(m),1080,16,0,7);G.fill();
+if(t>=C[1].e-.1){const k=eo(cl((t-C[1].e+.1)/.5));G.globalAlpha=k;shark(mx(450),970,.4,t);G.globalAlpha=1;G.font='bold 40px DejaVu Sans,Arial,sans-serif';G.fillStyle='#dfeaf2';G.globalAlpha=k;G.fillText('SHARKS',mx(450),1200);G.globalAlpha=1}
+if(t>=C[3].e-.1){const k=eo(cl((t-C[3].e+.1)/.5));G.globalAlpha=k;tree(mx(380),1078,.5);G.font='bold 40px DejaVu Sans,Arial,sans-serif';G.fillStyle='#7be0a0';G.fillText('TREES',mx(380),1200);G.globalAlpha=1}
+if(idx==4){const p=eo(cl(lt/.6)),x1=mx(450),x2=mx(380);G.strokeStyle='#ffd45e';G.lineWidth=8;G.beginPath();G.moveTo(x1,1260);G.lineTo(x1,1300);G.lineTo(x1+(x2-x1)*p,1300);G.lineTo(x1+(x2-x1)*p,1260);G.stroke();G.globalAlpha=p;G.fillStyle='#ffd45e';G.font='bold 56px DejaVu Sans,Arial,sans-serif';G.fillText('A 70 MILLION YEAR LEAD',540,1380);G.globalAlpha=1}
+}
+else{shark(330+Math.sin(t)*30,760,1.2,t);tree(800,1130,1.4);const pu=1+.04*Math.sin(t*8);G.save();G.translate(540,1300);G.scale(pu,pu);G.fillStyle='#ffd45e';G.beginPath();G.roundRect(-240,-60,480,120,60);G.fill();G.fillStyle='#02101c';G.font='bold 56px DejaVu Sans,Arial,sans-serif';G.fillText('FOLLOW',0,20);G.restore()}
+G.fillStyle='#9fd8f5';G.font='bold 40px DejaVu Sans,Arial,sans-serif';G.textAlign='center';G.fillText('WILD FACTS',540,150);
+cap(ch,lt,idx==C.length-1);
+G.fillStyle='rgba(0,0,0,'+(1-Math.min(1,t/.4))+')';G.fillRect(0,0,W,H)};
+window.__ready=true;
+</script></body></html>
