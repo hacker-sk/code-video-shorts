@@ -7,6 +7,10 @@ name: Make Reel
 # Voice-over: if the repo secret GEMINI_API_KEY is set, each reel's caption lines (TXT in index.html)
 # are spoken with Gemini TTS and the video timing follows the voice. Without the secret, nothing changes.
 # Optional repo variables: GEMINI_VOICE (default Kore), GEMINI_TTS_MODEL.
+#
+# YouTube: if the repo secret BUFFER_API_KEY is set, each rendered reel is uploaded to Cloudinary (secret CLOUDINARY_URL,
+# because Buffer only accepts a public video URL) and scheduled on your YouTube channel via Buffer 1 minute later.
+# Optional repo variables: BUFFER_CHANNEL_ID, BUFFER_YOUTUBE_PRIVACY (public|unlisted|private), BUFFER_YOUTUBE_CATEGORY.
 on:
   push:
     paths:
@@ -40,6 +44,8 @@ jobs:
   render:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -121,3 +127,17 @@ jobs:
           name: reels
           path: reels/*/video.mp4
           if-no-files-found: error
+
+      - name: Publish to YouTube via Buffer
+        if: ${{ env.BUFFER_API_KEY != '' }}
+        env:
+          LIST: ${{ steps.prep.outputs.list }}
+          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
+          BUFFER_CHANNEL_ID: ${{ vars.BUFFER_CHANNEL_ID }}
+          BUFFER_YOUTUBE_PRIVACY: ${{ vars.BUFFER_YOUTUBE_PRIVACY }}
+          BUFFER_YOUTUBE_CATEGORY: ${{ vars.BUFFER_YOUTUBE_CATEGORY }}
+        run: |
+          set -e
+          for n in $LIST; do
+            node skills/code-video/scripts/publish.mjs "$n" "reels/$n/video.mp4"
+          done
