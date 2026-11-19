@@ -1,15 +1,23 @@
 #!/usr/bin/env node
-// Gemini 3.8 TTS voice-over that is locked to the video's caption timing.
-// Reads the caption lines (TXT) from the page, speaks each line, then writes:
+// Gemini 3.8 TTS voice-over that is locked to the video's caption timing, using only a few API calls.
+// Reads the caption lines (TXT) from the page, speaks them, then writes:
 //   voice.wav    one audio track; line i starts exactly where its caption starts
 //   timing.json  {"d":[seconds per line],"total":seconds}; render.mjs feeds it to the page as window.__TIMING
 // Because the audio decides how long each line lasts, voice and captions/animation can't drift apart.
+//
+// Few calls: lines are sent to Gemini in batches (about 600 characters / 12 lines per call, so a 32-line reel is
+// about 4 calls instead of 32). Each batch comes back as one audio file, which is cut back into lines at the
+// pauses between them: the cuts are chosen where the silences are, guided by how long each line's text is.
+// If a batch can't be cut reliably (too few pauses, or a line comes out an implausible length) it is redone as
+// two smaller calls, down to one line per call, so sync never silently breaks.
+// Every cut line is kept in TTS_CACHE_DIR, so a re-render only generates lines that changed.
+//
 // Usage (inside the reel folder): node <skill>/scripts/tts.mjs index.html [voice.wav] [timing.json]
 // Needs: GEMINI_API_KEY (Google AI Studio key), playwright in this folder.
-// Optional env: GEMINI_API_KEY_2 .. GEMINI_API_KEY_5 (extra keys: when one hits its limit the next one is used),
+// Optional env: GEMINI_API_KEY_2 .. GEMINI_API_KEY_5 (extra keys; keys in the SAME Google project share one quota),
 //               GEMINI_TTS_MODEL (default gemini-3.8-flash-lite-tts), GEMINI_VOICE (default Kore), GEMINI_TTS_STYLE,
-//               TTS_MIN_INTERVAL (seconds between calls on one key, default 7, keeps under free-tier per-minute limits),
-//               TTS_CACHE_DIR (a folder where each generated line is kept; an unchanged line is reused instead of being generated again)
+//               TTS_BATCH_CHARS (default 600), TTS_BATCH_LINES (default 12), TTS_MIN_PAUSE_MS (default 120),
+//               TTS_MIN_INTERVAL (seconds between calls on one key, default 7), TTS_CACHE_DIR
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -25,8 +33,11 @@ console.log(`Gemini keys in use: ${ks.length}`);
 const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-lite-tts';
 const VOICE = process.env.GEMINI_VOICE || 'Kore';
 const STYLE = process.env.GEMINI_TTS_STYLE || 'clear, engaging storyteller';
+const BATCH_STYLE = STYLE + '; leave a clear pause of about half a second between paragraphs';
 const CACHE = process.env.TTS_CACHE_DIR || '';
 const MIN_GAP = Math.max(0, Number(process.env.TTS_MIN_INTERVAL ?? 7)) * 1000;
+const MAX_CHARS = Math.max(50, Number(process.env.TTS_BATCH_CHARS || 600));
+const MAX_LINES = Math.max(1, Number(process.env.TTS_BATCH_LINES || 12));
 const [page = 'index.html', wavOut = 'voice.wav', timingOut = 'timing.json'] = process.argv.slice(2);
 const LEAD = 0.5, GAP = 0.3, TAIL = 0.8; // LEAD must match the page's start offset (cs=.5)
 let RATE = 24000;                          // replaced by the sample rate Gemini's WAV reports
@@ -41,16 +52,16 @@ const lines = await tab.evaluate(() => (typeof TXT !== 'undefined' ? TXT : windo
 await browser.close();
 if (!Array.isArray(lines) || !lines.length) { console.error('no TXT array of caption lines found in ' + page); process.exit(1); }
 
-// 2) one Gemini TTS call per line.
+// 2) one Gemini TTS call (for one line or a batch).
 // Each call goes to the key that is ready soonest, so several keys share the work and each stays under its
 // per-minute limit. A key that reports its daily quota is used up is dropped for the rest of the run; on a
 // per-minute 429 that key rests for the time Google asks (Retry-After / retryDelay) while another key carries on.
 // Gemini 3.8 reads `text` literally, so the speaking style goes in speechMetadata, never in the text.
 const sleep = ms => new Promise(res => setTimeout(res, ms));
-async function tts(text) {
+async function tts(text, style) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
   const body = JSON.stringify({
-    contents: [{ role: 'user', parts: [{ text, speechMetadata: { style: STYLE } }] }],
+    contents: [{ role: 'user', parts: [{ text, speechMetadata: { style } }] }],
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { voice: VOICE } } }
   });
   const TRIES = 8 * ks.length;
@@ -87,17 +98,6 @@ async function tts(text) {
   throw new Error('Gemini TTS failed after retries');
 }
 
-// same model + voice + style + text -> same clip, kept in TTS_CACHE_DIR (the key doesn't matter)
-async function ttsCached(text) {
-  if (!CACHE) return tts(text);
-  const f = path.join(CACHE, crypto.createHash('sha1').update([MODEL, VOICE, STYLE, text].join('\u0000')).digest('hex') + '.wav');
-  if (fs.existsSync(f)) { console.log('  (cached)'); return fs.readFileSync(f); }
-  const b = await tts(text);
-  fs.mkdirSync(CACHE, { recursive: true });
-  fs.writeFileSync(f, b);
-  return b;
-}
-
 // Gemini 3.8 returns a complete WAV file: pull out the 16-bit mono samples and the sample rate
 // (a bare PCM buffer is still accepted as 24 kHz)
 function pcmOf(buf) {
@@ -128,15 +128,57 @@ function trim(s) {
   return s.slice(Math.max(0, a - pad), Math.min(s.length, b + pad));
 }
 
-const n = lines.length, clips = [];
-for (let i = 0; i < n; i++) { console.log(`TTS ${i + 1}/${n}`); clips.push(trim(pcmOf(await ttsCached(lines[i])))); }
-
-// 3) lay clips on one timeline; each line's slot = clip length + gap, so slots are the caption durations
-const leadS = Math.round(LEAD * RATE), gapS = Math.round(GAP * RATE), tailS = Math.round(TAIL * RATE);
-const slots = clips.map((c, i) => c.length + (i === n - 1 ? tailS : gapS));
-const out = new Int16Array(leadS + slots.reduce((x, y) => x + y, 0));
-let pos = leadS;
-clips.forEach((c, i) => { out.set(c, pos); pos += slots[i]; });
+// Cut one batch's audio back into its lines. Finds the silent gaps (10 ms frames below an adaptive threshold),
+// then picks N-1 of them in order: a long gap is preferred, and so is one near where the text length says the
+// boundary should be. Returns null if the cut doesn't look trustworthy, so the caller can redo the batch smaller.
+function splitBatch(pcm, texts) {
+  const N = texts.length;
+  if (N === 1) return [pcm];
+  const F = Math.round(RATE / 100);
+  const nf = Math.floor(pcm.length / F);
+  const rms = new Float64Array(nf);
+  for (let f = 0; f < nf; f++) { let s = 0; for (let i = f * F; i < (f + 1) * F; i++) s += pcm[i] * pcm[i]; rms[f] = Math.sqrt(s / F); }
+  const sorted = Array.from(rms).sort((a, b) => a - b);
+  const thr = Math.max(150, sorted[Math.floor(nf * 0.95)] * 0.06);
+  const MINSIL = Math.max(2, Math.round(Number(process.env.TTS_MIN_PAUSE_MS ?? 120) / 10));
+  let first = 0; while (first < nf && rms[first] < thr) first++;
+  let last = nf - 1; while (last > first && rms[last] < thr) last--;
+  if (last - first < N) return null;
+  const cands = []; // silent gaps strictly inside the speech
+  for (let f = first; f <= last;) {
+    if (rms[f] < thr) { let g = f; while (g <= last && rms[g] < thr) g++; if (g - f >= MINSIL) cands.push({ c: (f + g) / 2, len: g - f }); f = g; } else f++;
+  }
+  const K = N - 1, M = cands.length;
+  if (M < K) return null;
+  const w = texts.map(t => t.replace(/\s/g, '').length || 1), tot = w.reduce((a, b) => a + b, 0);
+  const span = last - first, exp = []; let cum = 0;
+  for (let k = 0; k < K; k++) { cum += w[k]; exp.push(first + (cum / tot) * span); }
+  const cost = (k, j) => 4 * Math.abs(cands[j].c - exp[k]) / span - 3 * Math.min(cands[j].len, 70) / 70;
+  const INF = 1e9;
+  const dp = Array.from({ length: K }, () => new Float64Array(M).fill(INF));
+  const from = Array.from({ length: K }, () => new Int32Array(M).fill(-1));
+  for (let j = 0; j < M; j++) dp[0][j] = cost(0, j);
+  for (let k = 1; k < K; k++) {
+    let best = INF, bi = -1;
+    for (let j = 0; j < M; j++) {
+      if (j > 0 && dp[k - 1][j - 1] < best) { best = dp[k - 1][j - 1]; bi = j - 1; }
+      if (best < INF) { dp[k][j] = best + cost(k, j); from[k][j] = bi; }
+    }
+  }
+  let bj = -1, bv = INF;
+  for (let j = 0; j < M; j++) if (dp[K - 1][j] < bv) { bv = dp[K - 1][j]; bj = j; }
+  if (bj < 0) return null;
+  const pick = new Array(K);
+  for (let k = K - 1, j = bj; k >= 0; k--) { pick[k] = j; j = from[k][j]; }
+  const cuts = [0, ...pick.map(j => Math.round(cands[j].c * F)), pcm.length];
+  const parts = [];
+  for (let k = 0; k < N; k++) parts.push(pcm.slice(cuts[k], cuts[k + 1]));
+  // sanity: every line's speech length per character must be close to the typical one
+  const per = parts.map((p, k) => trim(p).length / w[k]);
+  const med = [...per].sort((a, b) => a - b)[N >> 1];
+  if (!(med > 0) || per.some(r => r < 0.4 * med || r > 2.5 * med)) return null;
+  return parts;
+}
 
 function wav(pcm) {
   const h = Buffer.alloc(44);
@@ -145,6 +187,57 @@ function wav(pcm) {
   h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write('data', 36); h.writeUInt32LE(pcm.length, 40);
   return Buffer.concat([h, pcm]);
 }
+
+// per-line cache: same model + voice + style + text -> same clip (older per-line clips from earlier runs still count)
+const memo = new Map();
+const lineFile = text => path.join(CACHE, crypto.createHash('sha1').update([MODEL, VOICE, STYLE, text].join('\u0000')).digest('hex') + '.wav');
+function getLine(text) {
+  if (memo.has(text)) return memo.get(text);
+  if (CACHE) { const f = lineFile(text); if (fs.existsSync(f)) { const c = pcmOf(fs.readFileSync(f)); memo.set(text, c); return c; } }
+  return null;
+}
+function putLine(text, pcm) {
+  memo.set(text, pcm);
+  if (CACHE) { fs.mkdirSync(CACHE, { recursive: true }); fs.writeFileSync(lineFile(text), wav(Buffer.from(pcm.buffer, pcm.byteOffset, pcm.byteLength))); }
+}
+
+// 3) generate what the cache doesn't have, in batches
+const n = lines.length, clips = new Array(n);
+const need = [];
+for (let i = 0; i < n; i++) { const c = getLine(lines[i]); if (c) clips[i] = c; else need.push(i); }
+console.log(`${n - need.length} of ${n} lines from cache, ${need.length} to generate`);
+
+const batches = []; let cur = [], chars = 0;
+for (const i of need) {
+  if (cur.length && (cur.length >= MAX_LINES || chars + lines[i].length > MAX_CHARS)) { batches.push(cur); cur = []; chars = 0; }
+  cur.push(i); chars += lines[i].length;
+}
+if (cur.length) batches.push(cur);
+
+async function speak(idx) {
+  const texts = idx.map(i => lines[i]);
+  console.log(`TTS call: ${idx.length} line(s) [${idx.map(i => i + 1).join(',')}]`);
+  const pcm = pcmOf(await tts(idx.length === 1 ? texts[0] : texts.join('\n\n'), idx.length === 1 ? STYLE : BATCH_STYLE));
+  const parts = splitBatch(pcm, texts);
+  if (!parts) {
+    console.error(`  could not cut lines [${idx.map(i => i + 1).join(',')}] apart reliably; redoing as two smaller calls`);
+    const h = idx.length >> 1;
+    await speak(idx.slice(0, h));
+    await speak(idx.slice(h));
+    return;
+  }
+  idx.forEach((i, k) => { putLine(lines[i], parts[k]); clips[i] = parts[k]; });
+}
+for (const b of batches) await speak(b);
+for (let i = 0; i < n; i++) clips[i] = trim(clips[i]);
+
+// 4) lay clips on one timeline; each line's slot = clip length + gap, so slots are the caption durations
+const leadS = Math.round(LEAD * RATE), gapS = Math.round(GAP * RATE), tailS = Math.round(TAIL * RATE);
+const slots = clips.map((c, i) => c.length + (i === n - 1 ? tailS : gapS));
+const out = new Int16Array(leadS + slots.reduce((x, y) => x + y, 0));
+let pos = leadS;
+clips.forEach((c, i) => { out.set(c, pos); pos += slots[i]; });
+
 fs.writeFileSync(wavOut, wav(Buffer.from(out.buffer)));
 fs.writeFileSync(timingOut, JSON.stringify({ d: slots.map(s => s / RATE), total: out.length / RATE }));
 console.log(`wrote ${wavOut} and ${timingOut} (${(out.length / RATE).toFixed(2)}s, ${n} lines)`);
