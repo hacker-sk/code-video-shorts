@@ -1,0 +1,32 @@
+{
+  "bgm": "bgm/AloneInTheUnlimitedMountains",
+  "bgmVolume": 0.16,
+  "sfx": [
+    { "line": 0,  "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.3, "dur": 2.5 },
+    { "line": 1,  "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.4 },
+    { "line": 3,  "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.5, "dur": 3 },
+    { "line": 4,  "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.45 },
+    { "line": 9,  "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 12, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.5 },
+    { "line": 13, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.45 },
+    { "line": 16, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.35 },
+    { "line": 21, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.35 },
+    { "line": 24, "offset": 0.3, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.35, "dur": 4 },
+    { "line": 28, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 32, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Epic Cinematic Trailer Impact - Pack 2", "volume": 0.6 },
+    { "line": 34, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.45 },
+    { "line": 37, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.35 },
+    { "line": 39, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Bells", "volume": 0.45 },
+    { "line": 40, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Bells", "volume": 0.45 },
+    { "line": 45, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.35 },
+    { "line": 49, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.5 },
+    { "line": 54, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low+Hi", "volume": 0.55 },
+    { "line": 55, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.4 },
+    { "line": 63, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Cinematic Sub Drop", "volume": 0.55 },
+    { "line": 67, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 71, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.35 },
+    { "line": 74, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Bells", "volume": 0.5 },
+    { "line": 75, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.4, "dur": 2.5 },
+    { "line": 78, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Epic Cinematic Trailer Impact - Pack 2", "volume": 0.7 }
+  ]
+}

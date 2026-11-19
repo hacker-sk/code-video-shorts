@@ -1,0 +1,269 @@
+<!doctype html><html><head><meta charset='utf-8'><style>html,body{margin:0;background:#000;overflow:hidden}canvas{display:block}</style></head><body><canvas id='c' width='1920' height='1080'></canvas><script>
+const TXT=[
+"This morning, an alarm screamed until you woke up.",
+"You silenced it, and just like that, your day was already decided. Where you had to be, what you had to finish, and how many hours belonged to someone else.",
+"And tonight, you'll set that same alarm to scream again.",
+"Now, rewind 50,000 years.",
+"A man wakes up with the sunlight. No alarm. No schedule. No boss waiting for him.",
+"He owns a spear, two animal hides, and a fire.",
+"And the first question he asks himself is something you rarely get to ask:",
+"\"What should I do today?\"",
+"You probably think his life was miserable. That every waking hour was spent desperately searching for food.",
+"But archaeological evidence tells a very different story.",
+"When researchers compared the remains of ancient hunter-gatherers with those of early farmers, they found something unexpected.",
+"The hunter-gatherers often had stronger bones, healthier teeth, and fewer signs of repetitive physical strain.",
+"The early farmers, despite having crops, storage, and permanent homes, frequently showed more cavities, joint damage, and signs of poorer nutrition.",
+"The people who supposedly represented progress were sometimes living harder lives.",
+"But what did their days actually look like?",
+"Let's find out.",
+"You wake up around sunrise. The fire is still burning, and people are already eating leftover meat and nuts.",
+"You discuss where the water is, which plants are ready to gather, and where animal tracks were spotted.",
+"Today, nobody needs to hunt. The last hunt provided enough food for several days.",
+"So, some people go gathering, while you sharpen your spear and work on a piece of animal hide.",
+"Not because someone ordered you to. Because you enjoy being good at something.",
+"And by the afternoon, most essential work is finished.",
+"Of course, sometimes food runs low.",
+"Then you hunt.",
+"You don't chase an animal like in the movies. You follow it at a steady pace, allowing your body to cool itself while the animal gradually overheats and becomes exhausted.",
+"It can take hours, but one successful hunt can feed everyone for days.",
+"And the next day, you might not need to hunt at all.",
+"This wasn't just a fantasy about the past.",
+"In the 1960s, anthropologist Richard Lee studied the Ju'hoansi people of the Kalahari Desert.",
+"He expected them to spend almost every daylight hour finding food.",
+"So he followed them, recorded their activities, and actually counted their working hours.",
+"His findings surprised him.",
+"They spent roughly 17 hours a week obtaining food.",
+"Not every day. The entire week.",
+"That's around two and a half days of food-gathering work.",
+"Other studies of hunter-gatherer communities found similarly modest food-acquisition workloads, although the numbers varied between groups and seasons.",
+"But here's what makes this even more interesting.",
+"Their free time wasn't wasted.",
+"People sat together, talked, joked, played with children, and made things.",
+"At Blombos Cave in South Africa, archaeologists discovered carefully drilled shell beads more than 70,000 years old.",
+"And in Germany, researchers found a flute carved from a vulture's wing bone, around 40,000 years old.",
+"Think about that.",
+"Someone had enough time to travel, collect seashells, make jewellery, and create music.",
+"Beauty wasn't something they postponed until retirement.",
+"It was part of an ordinary day.",
+"And those long hours together served another purpose.",
+"In a world without hospitals, insurance, or retirement savings, your greatest protection was other people.",
+"When you were sick, injured, or unable to find food, your community could keep you alive.",
+"Your relationships were your safety net.",
+"Then came the night.",
+"Around the fire, conversations changed. People told stories about ancestors, spirits, impossible adventures, and how the world began.",
+"Anthropologist Polly Wiessner found that, among the Ju'hoansi she studied, nighttime conversations were far more focused on storytelling than daytime conversations.",
+"The fire wasn't just keeping people warm.",
+"It was creating space for imagination, shared memories, and culture.",
+"But around 10,000 years ago, something began to change.",
+"Humans started farming.",
+"At first, it looked like a brilliant deal.",
+"Plant seeds, grow more food, and stop depending on unpredictable hunts.",
+"But more food allowed populations to grow.",
+"More people needed more food.",
+"So, they planted more fields.",
+"And more fields required more work: planting, watering, weeding, harvesting, storing, and protecting crops.",
+"Eventually, communities became too large to return to their old way of life.",
+"Farming created permanent settlements, specialisation, cities, and eventually systems of taxes and wage labour.",
+"Little by little, human life became organised around work.",
+"Nobody stole your time in one dramatic moment.",
+"It was exchanged, generation after generation, for a different kind of security.",
+"And today, that trade is still happening.",
+"You spend years working, hoping that one day you'll finally have enough money and freedom to enjoy your life.",
+"But thousands of years ago, people were making music, creating art, telling stories, and spending afternoons with their families without waiting for retirement.",
+"Of course, their lives had dangers we can barely imagine. Disease, injury, hunger, and unpredictable seasons were real threats.",
+"But perhaps the biggest misunderstanding is believing that a life without modern technology must have been a life without free time.",
+"Because the man with a spear didn't have washing machines, cars, or smartphones.",
+"Yet he may have had something modern life keeps promising you:",
+"A day that actually belonged to him.",
+"Tomorrow morning, your alarm will scream again.",
+"And you'll probably silence it.",
+"But for one second, ask yourself the question that man could ask every morning:",
+"\"What would I do today if my time actually belonged to me?\""];
+function chunk(tx){const w=tx.split(' '),o=[];let c=[];w.forEach(x=>{c.push(x);if(c.length>=6||(/[.,:;?!"]$/.test(x)&&c.length>=3)){o.push(c);c=[]}});if(c.length){if(c.length<3&&o.length)o[o.length-1].push(...c);else o.push(c)}return o.map(a=>a.join(' '))}
+let cs=.5;const C=TXT.map((tx,i)=>{const d=(window.__TIMING&&window.__TIMING[i])||.35+.34*tx.split(' ').length;const ch=chunk(tx),tot=ch.reduce((a,b)=>a+b.length,0);let a=0;const cc=ch.map(s=>{const o={s,f0:a/tot};a+=s.length;return o});const o={tx,d,s:cs,e:cs+d,ch:cc};cs+=d;return o});
+const W=192,H=108,Z=10,G=document.getElementById('c').getContext('2d');
+const sm=document.createElement('canvas');sm.width=W;sm.height=H;const g=sm.getContext('2d');
+let TT=0,lastKey=null;
+const px=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+const disc=(cx,cy,r,c)=>{g.fillStyle=c;for(let y=-r;y<=r;y++){const w=Math.floor(Math.sqrt(r*r-y*y)+.5);g.fillRect(Math.round(cx)-w,Math.round(cy)+y,2*w+1,1)}};
+const ln=(a,b,c,d,e)=>{const n=Math.max(Math.abs(c-a),Math.abs(d-b),1);for(let i=0;i<=n;i++)px(a+(c-a)*i/n,b+(d-b)*i/n,1,1,e)};
+const R=n=>{const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)};
+const bands=(a,y0,y1)=>{const h=(y1-y0)/a.length;a.forEach((c,i)=>px(0,y0+i*h,W,Math.ceil(h)+1,c))};
+const stars=(f,n,ym)=>{for(let i=0;i<n;i++){const tw=Math.floor(f*3+i)%6==0;px(R(i)*W,R(i+50)*ym,tw?2:1,tw?2:1,tw?'#fff':'#9aa5d8')}};
+const fire=(x,y,f,s)=>{const k=Math.floor(f*10),h=a=>Math.round((5+R(k+a)*3)*s);px(x-7*s,y,14*s,2,'#5a3a1e');px(x-5*s,y+2,10*s,1,'#3a2410');px(x-3*s,y-h(1),6*s,h(1),'#d9381e');px(x-2*s,y-h(2)+1,4*s,h(2)-1,'#ff8a1e');px(x-s,y-h(3)+3,2*s,h(3)-3,'#ffe066');for(let i=0;i<4;i++)px(x-4+R(k*3+i)*8,y-10*s-((f*18+i*7)%12),1,1,'#ffd45e')};
+const man=(x,y,o)=>{o=o||{};const c=o.c||'#8b5a2b',h=o.h||'#2a1a10',sk=o.sk||'#e0a97a',f=o.f||0,dir=o.dir||1,b=o.w?Math.floor(f*6)%2:0;
+if(o.sit){px(x-2,y-9,4,4,sk);px(x-2,y-10,4,1,h);px(x-2,y-5,4,5,c);px(x-4,y-1,8,1,h)}
+else{px(x-2,y-16-b,4,4,sk);px(x-2,y-17-b,4,1,h);px(x-2,y-12-b,4,6,c);const l=o.w?Math.floor(f*6)%2:0;px(x-2,y-6,1,6-l,h);px(x+1,y-6,1,5+l,h)}
+if(o.sp){px(x+3*dir,y-30,1,28,'#7a5a3a');px(x+3*dir,y-31,1,2,'#ddd')}
+if(o.arm)px(x+2*dir,y-12-(Math.floor(o.f*6)%2)*2,2,1,sk)};
+const Qm=(x,y,c)=>['011','101','001','010','000','010'].forEach((r,j)=>{for(let k=0;k<3;k++)if(r[k]=='1')px(x+k,y+j,1,1,c)});
+const note=(x,y,c)=>{px(x,y,3,2,c);px(x+2,y-5,1,5,c)};
+const heart=(x,y,c)=>['01010','11111','11111','01110','00100'].forEach((r,j)=>{for(let k=0;k<5;k++)if(r[k]=='1')px(x+k,y+j,1,1,c)});
+const xx=(x,y,s)=>{ln(x,y,x+s,y+s,'#ff3a3a');ln(x+s,y,x,y+s,'#ff3a3a');ln(x+1,y,x+s+1,y+s,'#ff3a3a');ln(x+s+1,y,x+1,y+s,'#ff3a3a')};
+const S={};
+S.bed=(i,f,lt,d)=>{const nt=i==2,ring=i==0||(i==2&&lt>d*.55),sh=ring?(Math.floor(f*12)%2)*2-1:0;
+px(0,0,W,108,nt?'#0c1024':'#2a3050');px(0,80,W,28,nt?'#14172b':'#1e2238');
+px(128,12,44,38,'#0a0a12');px(130,14,40,34,nt?'#0a0e2a':'#d9805a');
+if(nt){for(let k=0;k<8;k++)px(132+R(k)*34,16+R(k+9)*18,1,1,'#fff');disc(150,28,6,'#f5f0c8');disc(152,27,5,'#0a0e2a')}else{px(130,36,40,12,'#f0b070');disc(150,44,9,'#ffd980')}
+px(149,14,2,34,'#0a0a12');px(130,30,40,2,'#0a0a12');
+if(i==3)man(150,48,{c:'#111',h:'#111',sk:'#111',sp:1});
+px(8,70,76,12,'#3a2f60');px(8,58,5,24,'#3a2f60');px(12,64,72,6,'#8a7ac8');px(14,59,14,6,'#f2f2f2');px(28,60,54,9,'#5b4a9a');px(17,56,7,5,'#e0a97a');px(17,55,7,2,'#2a1a10');
+if(i==1)px(76,60,18,2,'#e0a97a');
+px(92,66,20,22,'#5a3a1e');px(94,68,16,8,'#3d2812');
+px(95+sh,57,12,9,ring?'#d33':'#333');px(97+sh,59,8,5,'#ffe9a8');px(100+sh,60,1,3,'#111');px(100+sh,62,3,1,'#111');px(95+sh,55,3,2,'#999');px(104+sh,55,3,2,'#999');
+if(ring)for(let k=0;k<3;k++){const o=(Math.floor(f*12)+k)%3;px(90-o*3,52-o*2,1,3,'#ff5a5a');px(112+o*3,52-o*2,1,3,'#ff5a5a');px(98+(k-1)*4,48-o*2,2,1,'#ff5a5a')}
+if(i==1){const n=Math.min(6,Math.floor(lt/d*8)),cl=['#e0505a','#e0a050','#50a0e0','#60c070','#b070d0','#e0505a'];for(let k=0;k<n;k++){px(12,8+k*8,18+(k*13)%30,6,cl[k]);px(12,8+k*8,3,6,'#fff')}}};
+S.rew=(i,f,lt,d)=>{px(0,0,W,108,'#120a24');for(let k=0;k<16;k++){const a=f*3+k*Math.PI/8,c=k%2?'#2a1650':'#1a0e38';for(let r=10;r<110;r+=2)px(96+Math.cos(a)*r,54+Math.sin(a)*r*.6,2,2,c)}
+disc(96,54,31,'#e8e0c8');disc(96,54,28,'#1a1a2a');for(let k=0;k<12;k++){const a=k*Math.PI/6;px(96+Math.cos(a)*25,54+Math.sin(a)*25,2,2,'#e8e0c8')}
+const an=-lt*18,a2=an/12;ln(96,54,96+Math.sin(an)*22,54-Math.cos(an)*22,'#ffd45e');ln(96,54,96+Math.sin(a2)*14,54-Math.cos(a2)*14,'#e8e0c8');disc(96,54,2,'#ffd45e')};
+S.dawn=(i,f,lt,d,u)=>{const p=Math.min(1,u/12);bands(['#1c1f52','#3a2f7a','#8a3f8a','#d9587a','#f0905a','#ffc470'],0,70);
+const sy=76-p*36;disc(120,sy,9,'#fff2a8');disc(120,sy,7,'#ffd45e');
+for(let x=0;x<W;x++){const h=Math.round(66+Math.sin(x*.05)*5+Math.sin(x*.13)*3);px(x,h,1,40,'#2a1f4d')}
+px(0,84,W,24,'#3b2a1e');for(let x=0;x<W;x+=7)px(x+R(x)*3,86+(x%3)*5,3,1,'#2a1c12');
+if(i>=5){px(56,90,12,3,'#c9a05a');px(58,93,12,3,'#a8793a')}
+fire(132,92,f,1);
+if(i==4&&lt<d*.45){px(82,88,18,4,'#8b5a2b');px(80,87,4,4,'#e0a97a');if(Math.floor(f*2)%2){px(88,80,3,1,'#fff');px(91,78,3,1,'#fff')}}else man(96,92,{sp:i>=5,f});
+if(i==5){const hl=Math.floor(lt/d*3),P=[[100,62],[63,90],[132,86]][Math.min(2,hl)];if(Math.floor(f*6)%2){px(P[0]-7,P[1]-7,3,1,'#ffd45e');px(P[0]+5,P[1]-7,3,1,'#ffd45e');px(P[0]-7,P[1]+7,3,1,'#ffd45e');px(P[0]+5,P[1]+7,3,1,'#ffd45e')}}
+if(i==6||i==7){const b=Math.floor(f*3)%2;px(88,40+b,16,14,'#fff');px(94,54+b,3,3,'#fff');Qm(94,43+b,'#111')}
+if(i==8){px(88,40,18,14,'#fff');px(94,54,3,3,'#fff');disc(97,47,5,'#ccc');disc(97,47,3,'#fff');if(Math.floor(f*3)%2)px(102,74,1,3,'#4aa8ff')}};
+S.bones=(i,f,lt,d)=>{px(0,0,W,108,'#12201f');for(let x=0;x<W;x+=8)px(x,0,1,108,'#1a2c2b');for(let y=0;y<108;y+=8)px(0,y,W,1,'#1a2c2b');
+const fig=(cx,farm,dim)=>{const b=dim?'#6a7a70':'#f0ece0',th=dim?'#999':'#fff';disc(cx,30,13,b);px(cx-7,28,4,4,'#111');px(cx+3,28,4,4,'#111');px(cx-1,34,2,3,'#111');
+for(let k=0;k<8;k++)px(cx-14+k*4,41,3,5,farm&&(k==1||k==4||k==6)?'#5a3a20':th);
+px(cx-1,47,3,24,b);for(let k=0;k<4;k++)px(cx-9,50+k*5,18,2,b);
+px(cx-14,74,3,26,b);px(cx+11,74,3,26,b);px(cx-15,73,5,3,b);px(cx-15,99,5,3,b);px(cx+10,73,5,3,b);px(cx+10,99,5,3,b);
+if(farm){px(cx-15,98,5,3,'#e0403a');px(cx+10,98,5,3,'#e0403a');px(cx-13,86,2,2,'#e0403a')}};
+if(i==9){fig(96,0,0);disc(122,50,16,'#7ee0c0');disc(122,50,14,'#12201f');px(134,62,3,12,'#7ee0c0');Qm(120,44,'#7ee0c0')}
+else if(i<=13){const sl=i==10?Math.min(1,lt/.6):1,oL=-(1-sl)*70,oR=(1-sl)*70,sh=i==13?(Math.floor(f*12)%2)*2:0;
+fig(48+oL,0,i==12);fig(144+oR+sh,1,i==11);
+if(i==11){ln(78,20,82,26,'#7ee08a');ln(82,26,90,14,'#7ee08a');ln(79,20,83,26,'#7ee08a');ln(83,26,91,14,'#7ee08a')}
+if(i==12)xx(168,16,10)}
+else{fig(48,0,1);fig(144,1,1);if(Math.floor(f*3)%2){Qm(94,40,'#ffd45e');Qm(95,40,'#ffd45e')}}};
+S.camp=(i,f,lt,d)=>{bands(['#7ec8f0','#9ad4f4','#b8e0f6'],0,56);disc(30,18,8,'#fff6b0');
+for(let x=0;x<W;x++)px(x,50+Math.round(Math.sin(x*.06)*4),1,30,'#5a9a4a');px(0,72,W,36,'#b98d4f');
+for(let x=0;x<W;x+=9)px(x+R(x)*4,76+(x*7)%28,3,1,'#9a7238');
+px(165,48,3,28,'#6a4a2a');disc(166,44,12,'#3f7a3a');
+if(i>=18&&i<=20){px(14,66,2,24,'#6a4a2a');px(40,66,2,24,'#6a4a2a');px(14,66,28,2,'#6a4a2a');for(let k=0;k<4;k++)px(18+k*6,68,4,7,'#b33')}
+fire(96,88,f,1);for(let k=0;k<5;k++)px(96+Math.sin(f*2+k)*3,78-k*5-(f*10%5),2,2,'#cfcfcf');
+const cl=['#8b5a2b','#a8582b','#6a7a3a','#8a4a5a'],pp=[[64,94],[82,98],[110,98],[128,94]];
+pp.forEach((p,k)=>{man(p[0],p[1],{sit:1,c:cl[k],f})});
+if(i==16)pp.forEach((p,k)=>{px(p[0]+3,p[1]-8-(Math.floor(f*3+k)%2)*2,2,2,'#b33')});
+if(i==17){const n=Math.min(2,Math.floor(lt/d*3));px(56,56,22,16,'#fff');px(62,72,3,3,'#fff');
+if(n==0){px(65,60,4,6,'#4aa8ff');px(66,59,2,1,'#4aa8ff')}else if(n==1){px(64,60,6,5,'#4acf5a');px(66,65,2,3,'#6a4a2a')}else{disc(67,64,3,'#8a5a2a');px(63,59,2,2,'#8a5a2a');px(71,59,2,2,'#8a5a2a')}}
+if(i==19){const wx=-10+(lt/d)*100;[wx,wx-16].forEach((x,k)=>{man(x,100,{w:1,f,c:k?'#8a4a5a':'#6a7a3a'});px(x+2,92,4,3,'#a8793a')});ln(60,92,76,90,'#7a5a3a');if(Math.floor(f*8)%2)px(77,89,1,1,'#fff')}
+if(i==20){const s=Math.floor(f*6)%2;px(63,70,1,5+s*2,'#ffd45e');px(61,72,5,1,'#ffd45e')}};
+S.hunt=(i,f,lt,d)=>{const q=Math.max(0,Math.min(1,(TT-C[23].s)/(C[26].s-C[23].s)));
+bands(['#f6d27a','#f2b860','#eea050'],0,60);const pu=Math.floor(f*4)%2;disc(160,22,9+pu,'#fff3b0');for(let k=0;k<8;k++){const a=k*Math.PI/4+f;px(160+Math.cos(a)*(14+pu),22+Math.sin(a)*(14+pu),2,2,'#ffe59a')}
+px(0,58,W,50,'#d8a85a');for(let x=0;x<W;x++)px(x,58+Math.round(Math.sin(x*.04+1)*3),1,2,'#c8924a');
+const sc=(i>=23&&i<=25)?(TT*22)%W:0;for(let k=0;k<8;k++){const x=((k*31-sc)%W+W)%W;px(x,78+(k*11)%24,4,1,'#b87f3a')}
+for(let k=0;k<5;k++)px(10+k*38+Math.sin(f*4+k)*3,56,14,1,'#fbe9a8');
+const tx=((150-sc*.5)%W+W)%W;px(tx,50,2,22,'#6a4a2a');px(tx-12,46,26,5,'#4f8a3a');
+if(i==21){man(40,92,{sit:1,sp:1,f});px(56,90,10,3,'#c9a05a');px(58,93,10,3,'#a8793a')}
+else if(i==22){px(110,66,2,24,'#6a4a2a');px(136,66,2,24,'#6a4a2a');px(110,66,28,2,'#6a4a2a');man(60,92,{sp:1,f})}
+else if(i<=25){const hx=50,gap=62-52*q,ax=hx+gap,ay=92,lie=q>.8;
+man(hx,92,{w:1,f,sp:1});
+if(i>=24){px(10,8,46,5,'#223');px(10,8,14+Math.round(q*4),5,'#4aa8ff');px(110,8,70,5,'#223');px(110,8,8+Math.round(q*62),5,'#ff4a3a')}
+if(!lie){const lg=Math.floor(f*(10-6*q))%2;px(ax,ay-10,12,6,'#c88a4a');px(ax+11,ay-14,4,4,'#c88a4a');px(ax+13,ay-17,1,3,'#654');px(ax+1,ay-4,2,4-lg,'#8a5a2a');px(ax+9,ay-4,2,3+lg,'#8a5a2a');if(q>.4)px(ax+13,ay-11,2,1,'#e55')}
+else if(!(i==25&&lt>d*.4)){px(ax,ay-6,12,5,'#c88a4a');px(ax+11,ay-7,4,3,'#c88a4a');px(ax+12,ay-6,2,1,'#111')}
+if(i==25&&lt>d*.4)px(hx-6,ay-24,12,5,'#c88a4a')}
+else{man(60,92,{sit:1,sp:1,f});px(78,90,8,4,'#b33');px(88,91,6,3,'#b33');if(i==27)man(100,96,{sit:1,c:'#8a4a5a',f})}};
+S.kal=(i,f,lt,d,u)=>{bands(['#f0b86a','#f4c880','#f8d896'],0,58);disc(40,20,10,'#fff3b0');px(0,58,W,50,'#e8c07a');for(let x=0;x<W;x++)px(x,52+Math.round(Math.sin(x*.03)*6+Math.sin(x*.09)*2),1,10,'#e0a85a');
+for(let x=0;x<W;x+=11)px(x+R(x)*5,64+(x*7)%40,3,1,'#c99850');px(158,44,2,22,'#6a4a2a');px(146,40,26,5,'#6f8a3a');
+if(i<32){const x0=10+(u*6)%120;[0,1,2,3].forEach(k=>man(x0+k*13,92,{w:1,f,c:['#8b5a2b','#a8582b','#6a7a3a','#8a4a5a'][k]}));
+man(160,96,{c:'#eee',f});px(164,86,5,6,'#fff');if(Math.floor(f*6)%2)px(165,87,2,1,'#222')}
+else{px(0,36,W,60,'#101820');
+if(i==32){const w=Math.round(17*Math.min(1,lt/(d*.7)));px(10,60,172,14,'#2a6a5a');px(10,60,w,14,'#ffd45e');for(let k=1;k<7;k++)px(10+k*24.6,60,1,14,'#101820')}
+else{const n=Math.min(7,Math.floor((i==33?lt/d:1)*8));for(let k=0;k<n;k++){const c=i>=34&&k<2?'#ffd45e':'#2a6a5a';px(12+k*25,52,22,30,'#2a6a5a');if(i>=34){if(k<2)px(12+k*25,52,22,30,'#ffd45e');else if(k==2)px(12+k*25,52,22,15,'#ffd45e')}}}}};
+S.free=(i,f,lt,d)=>{
+if(i<=38){bands(['#7ec8f0','#9ad4f4','#b8e0f6'],0,56);disc(150,18,8,'#fff6b0');px(0,56,W,52,'#5a9a4a');for(let x=0;x<W;x+=8)px(x+R(x)*3,60+(x*5)%44,2,2,'#4a8a3a');
+const cx=96,cl=['#8b5a2b','#a8582b','#6a7a3a','#8a4a5a','#4a6a9a'];for(let k=0;k<5;k++){const a=k*Math.PI*2/5;man(cx+Math.cos(a)*26,86+Math.sin(a)*8,{sit:1,c:cl[k],f})}
+for(let k=0;k<3;k++){const j=Math.abs(Math.sin(f*5+k*2))*8;px(20+k*8,98-j,3,5,['#e0505a','#50a0e0','#e0c050'][k]);px(20+k*8,96-j,3,2,'#e0a97a')}
+const b=Math.floor(f*3)%2;px(70,56+b,18,10,'#fff');px(75,66+b,3,3,'#fff');for(let k=0;k<3;k++)px(74+k*4,60+b,2,2,(Math.floor(f*4)%3==k)?'#222':'#aaa');
+if(i==38){px(110,50,18,10,'#fff');px(114,60,3,3,'#fff');ln(116,52,120,56,'#222');px(124,52,2,2,'#e0505a')}}
+else if(i==39){bands(['#2a6aa8','#3a8ac8','#5ab0e0'],0,50);px(0,50,W,58,'#e8c898');px(0,0,50,70,'#201810');disc(24,40,20,'#201810');px(0,60,50,10,'#201810');
+const n=Math.min(16,Math.floor(lt/d*18));for(let k=0;k<n;k++){const x=44+k*7,y=36+Math.round(Math.sin(k/15*Math.PI)*26);disc(x,y,3,k%2?'#f0e0c8':'#e8a0a0');if(k==n-1&&Math.floor(f*6)%2)px(x+3,y-5,1,3,'#fff')}}
+else if(i<=42){bands(['#2b1e5a','#8a3a7a','#e0585a','#f09a5a'],0,60);px(0,60,W,48,'#2a3a2a');for(let x=0;x<W;x++)px(x,56+Math.round(Math.sin(x*.07)*4),1,10,'#1a2a1a');
+if(i<=41){for(let k=0;k<52;k++)px(34+k*2.4,78-k*1.1,3,3,'#efe6d0');for(let k=0;k<5;k++)px(56+k*9,70-k*4.2,2,2,'#4a3a2a');
+for(let n=0;n<5;n++){const y=50-((f*14+n*10)%50);note(96+n*16+Math.sin(f*3+n)*3,y+30,n%2?'#ffd45e':'#fff')}
+if(i==40){const vx=(f*14)%W;px(vx,16,8,1,'#111');px(vx+2,15,4,1,'#111');px(vx+3,14,2,1,'#111')}}
+else{const n=Math.floor(lt/d*4);if(n>=0){disc(40,70,10,'#f0c8c0');disc(40,70,5,'#d9908a')}if(n>=1){for(let k=0;k<9;k++)disc(68+k*5,56+Math.round(Math.sin(k/8*Math.PI)*18),2,k%2?'#f0e0c8':'#e8a0a0')}if(n>=2){for(let k=0;k<30;k++)px(106+k*2,84-k*.8,3,3,'#efe6d0');note(150,50,'#ffd45e')}}}
+else{bands(['#2b1e5a','#8a3a7a','#e0585a','#f09a5a','#ffd080'],0,70);disc(96,66,18,'#ffe59a');px(0,70,W,38,'#1a1a2a');for(let k=0;k<5;k++){const j=Math.abs(Math.sin(f*3+k))*4;man(40+k*28,92-j,{c:'#111',h:'#111',sk:'#111',w:0,f})}
+for(let n=0;n<6;n++){const y=60-((f*12+n*9)%50);note(30+n*28+Math.sin(f*3+n)*3,y+20,n%2?'#ffd45e':'#fff')}}};
+S.net=(i,f,lt,d)=>{px(0,0,W,108,'#2a1f3d');stars(f,30,50);px(0,78,W,30,'#1a1410');fire(96,90,f,1);
+const cl=['#8b5a2b','#a8582b','#6a7a3a','#8a4a5a','#4a6a9a','#b08a3a'],pp=[[50,94],[72,98],[120,98],[142,94],[30,92],[162,92]];
+pp.forEach((p,k)=>{if(i==47&&k==0)return;man(p[0],p[1],{sit:1,c:cl[k],f})});
+if(i==45)for(let k=0;k<4;k++)heart(60+k*24,50-((f*10+k*8)%24),'#ff5a7a');
+if(i==46){const n=Math.min(3,Math.floor(lt/d*3.5));const ic=[()=>{px(24,24,22,22,'#fff');px(33,28,4,14,'#e03a3a');px(28,33,14,4,'#e03a3a')},()=>{px(84,24,18,22,'#f2f2d0');for(let k=0;k<4;k++)px(87,28+k*5,12,1,'#555')},()=>{disc(160,34,10,'#ffd45e');disc(160,34,6,'#e0b030')}];const xs=[[24,24],[84,24],[150,24]];for(let k=0;k<n;k++){ic[k]();xx(xs[k][0]-2,xs[k][1]-2,24)}}
+if(i==47){const x=50,y=96;px(x-8,y-3,16,3,'#6a9a5a');px(x-8,y-6,4,4,'#a8d090');for(let k=0;k<3;k++){const p=(lt/d+k*.3)%1;px(110-p*55,86,3,2,k%2?'#b33':'#4aa8ff')}for(let k=0;k<3;k++)heart(40+k*8,60-((f*8+k*7)%18),'#ff5a7a')}
+if(i==48){for(let a=0;a<pp.length;a++)for(let b=a+1;b<pp.length;b++){if((a+b+Math.floor(f*2))%2==0)ln(pp[a][0],pp[a][1]-14,pp[b][0],pp[b][1]-14,'#ff9ab0')}for(let k=0;k<3;k++)heart(86+k*9,40-((f*8+k*5)%14),'#ff5a7a')}};
+S.night=(i,f,lt,d)=>{px(0,0,W,108,'#070a1c');stars(f,70,70);disc(160,20,7,'#f5f0c8');disc(163,19,6,'#070a1c');px(0,82,W,26,'#1a1410');for(let x=0;x<W;x+=6)px(x,84+(x%4)*5,2,1,'#2a2018');
+fire(96,92,f,2);const cl=['#8b5a2b','#a8582b','#6a7a3a','#8a4a5a','#4a6a9a'],pp=[[40,98],[58,102],[134,102],[152,98],[170,96]];pp.forEach((p,k)=>man(p[0],p[1],{sit:1,c:cl[k],f}));man(76,96,{c:'#b04a2a',arm:1,f,dir:1});
+if(i!=51&&i<52){const n=Math.floor(lt/d*4)%4,y=30+Math.sin(f*3)*2;px(82,y-4,28,26,'#1a2040');
+if(n==0){disc(96,y+8,6,'#e8f0ff');px(90,y+8,12,8,'#e8f0ff');px(93,y+6,2,2,'#111');px(98,y+6,2,2,'#111')}
+else if(n==1){px(86,y+6,18,10,'#5a4a3a');px(100,y+2,6,6,'#5a4a3a');px(104,y+8,2,6,'#efe6d0')}
+else if(n==2){[[88,y],[96,y+6],[104,y+2],[100,y+14],[90,y+16]].forEach((p,k,a)=>{px(p[0],p[1],2,2,'#fff');if(k)ln(a[k-1][0],a[k-1][1],p[0],p[1],'#6a7ab8')})}
+else{disc(96,y+10,7,'#4a8ac8');px(86,y+10,20,1,'#e8d8a0')}}
+if(i==51){px(12,18,180,60,'#0a0e24');px(16,26,36,12,'#e0a050');px(16,48,150,12,'#6a8aff')}
+if(i>=52)for(let k=0;k<6;k++)heart(60+k*14,40-((f*10+k*6)%30),k%2?'#ffd45e':'#ff9a4a')};
+S.farm=(i,f,lt,d)=>{const P=Math.max(0,Math.min(1,(TT-C[54].s)/(C[66].e-C[54].s))),gr=P>.55;
+bands(gr?['#8a8f9a','#9aa0aa','#aab0b8']:['#7ec8f0','#9ad4f4','#b8e0f6'],0,56);if(!gr)disc(160,16,8,'#fff6b0');
+px(0,56,W,52,gr?'#6a5a44':'#8a6a3a');
+const rows=Math.min(6,Math.floor(P*11));for(let r=0;r<rows;r++){const y=70+r*6;px(0,y,W,4,'#5a4a2a');for(let x=2;x<W;x+=6){const hh=2+Math.round((1+Math.sin(f*2+x))*.7);px(x,y-hh+3,2,hh,gr?'#7a9a4a':'#4acf5a')}}
+const hu=Math.min(5,Math.floor(P*12));for(let k=0;k<hu;k++){const x=10+k*30;px(x,52,12,8,'#a8793a');px(x-2,50,16,2,'#7a4a2a');px(x+1,46,10,4,'#7a4a2a');px(x+5,54,3,6,'#2a1a10')}
+const bl=Math.min(8,Math.floor(Math.max(0,P-.5)*18));for(let k=0;k<bl;k++){const x=20+k*20,h=18+(k*7)%22;px(x,56-h,14,h,'#5a6070');for(let a=0;a<h-3;a+=5)for(let b=0;b<3;b++)px(x+2+b*4,56-h+2+a,2,2,(R(k*9+a+b)>.5&&Math.floor(f)%2==0)?'#ffe08a':'#2a3040')}
+if(bl>3)for(let k=0;k<6;k++)px(150+k*2+Math.sin(f*2+k)*3,24-k*3,3,3,'#6a6a72');
+const n=Math.min(9,2+Math.floor(P*10));for(let k=0;k<n;k++)man(10+k*20,106,{c:'#8b5a2b',f})};
+S.today=(i,f,lt,d)=>{const p=Math.max(0,Math.min(1,(TT-C[67].s)/(C[70].s-C[67].s)));
+if(i==69){px(0,0,W,108,'#1a1230');px(0,80,W,28,'#2a1a10');fire(96,90,f,1);for(let k=0;k<6;k++){disc(20+k*30,40+(k%3)*6,4,'#c0603a');px(16+k*30,28+(k%3)*6,2,6,'#c0603a');px(20+k*30,28+(k%3)*6,2,6,'#c0603a')}for(let n=0;n<5;n++){const y=70-((f*14+n*9)%50);note(60+n*20+Math.sin(f*3+n)*3,y+20,n%2?'#ffd45e':'#fff')}return}
+if(i==70){px(0,0,W,108,'#1a1e2a');px(0,80,W,28,'#2a2a22');for(let k=0;k<60;k++){const x=(R(k)*W+f*40)%W,y=(R(k+7)*108+f*160)%108;px(x,y,1,4,'#6a7aa8')}for(let k=0;k<3;k++)px(10+k*60,10+k%2*6,50,14,'#3a4050');if(Math.floor(f*6)%7==0){px(0,0,W,108,'#dfe6ff');ln(100,24,92,50,'#fff');ln(92,50,100,56,'#fff');ln(100,56,90,80,'#fff')}man(150,92,{sp:1,c:'#5a3a1e',f});return}
+px(0,0,W,108,'#2e3340');px(0,80,W,28,'#1e222c');px(128,12,44,38,'#111');px(130,14,40,34,'#8a8f9a');px(0,70,W,0,'#000');
+px(60,70,80,6,'#5a4a3a');px(66,76,4,16,'#4a3a2a');px(130,76,4,16,'#4a3a2a');px(84,48,32,22,'#111');px(86,50,28,18,Math.floor(f*3)%2?'#3a6aa8':'#4a7ab8');px(98,70,4,3,'#222');
+man(70,76,{sit:1,c:'#334f8a',f});if(Math.floor(f*4)%2)px(72,66,2,1,'#e0a97a');
+px(14,10,164,6,'#222');px(14,10,Math.round(164*p),6,'#e0505a');px(176,2,2,14,'#ccc');px(166,2,12,6,'#ffd45e')};
+S.spear=(i,f,lt,d)=>{bands(['#2b1e5a','#8a3a7a','#e0585a','#f09a5a','#ffd080'],0,70);disc(96,64,i==74?22:16,'#ffe59a');
+if(i==74)for(let k=0;k<12;k++){const a=k*Math.PI/6+f*.6;ln(96+Math.cos(a)*24,64+Math.sin(a)*24,96+Math.cos(a)*50,64+Math.sin(a)*50,'#ffd080')}
+for(let x=0;x<W;x++)px(x,70+Math.round(Math.sin(x*.05)*3)+(x>60&&x<132?-6+Math.abs(x-96)*.12:0),1,40,'#1a1a2a');
+man(96,70,{sp:1,c:'#000',h:'#000',sk:'#000'});
+if(i==72){const n=Math.min(3,Math.floor(lt/d*3.4));if(n>0){px(20,20,22,26,'#e8e8f0');disc(31,34,7,'#6aa0d8');xx(18,18,26)}if(n>1){px(72,28,40,12,'#c03a3a');px(78,22,24,8,'#9ad0f0');disc(80,42,5,'#222');disc(104,42,5,'#222');xx(78,16,30)}if(n>2){px(150,18,12,24,'#222');px(152,20,8,18,'#4a8ad8');xx(146,14,22)}}
+if(i==73)Qm(93+Math.floor(Math.sin(f*4)*2),28,'#ffe59a');
+if(i==74)for(let k=0;k<10;k++)px(30+R(k)*130,20+((f*10+k*9)%60),1,1,'#fff')};
+S.end=(i,f,lt,d,u)=>{
+if(i<=77){S.bed(i==75?0:i==76?1:3,f,lt,d);return}
+bands(['#1c1f52','#3a2f7a','#8a3f8a','#d9587a','#f0905a','#ffc470'],0,70);const p=Math.min(1,lt/d);disc(96,78-p*22,12,'#fff2a8');disc(96,78-p*22,10,'#ffd45e');
+for(let x=0;x<W;x++){const h=Math.round(72+Math.sin(x*.05)*4+Math.sin(x*.13)*3);px(x,h,1,40,'#2a1f4d')}px(0,86,W,22,'#3b2a1e');
+man(96,88,{sp:1,c:'#111',h:'#111',sk:'#111',f});px(88,38,16,14,'#fff');px(94,52,3,3,'#fff');Qm(94,41+Math.floor(f*3)%2,'#111')};
+const SCS=[[0,'bed'],[3,'rew'],[4,'dawn'],[9,'bones'],[16,'camp'],[21,'hunt'],[28,'kal'],[37,'free'],[45,'net'],[49,'night'],[54,'farm'],[67,'today'],[71,'spear'],[75,'end']];
+const sceneOf=i=>{let k=0;SCS.forEach((s,j)=>{if(i>=s[0])k=j});return k};
+const OV={9:['ARCHAEOLOGY','#7ee0c0'],11:['STRONG BONES + HEALTHY TEETH','#7ee08a'],12:['MORE CAVITIES + JOINT DAMAGE','#ff7a6a'],13:['PROGRESS?','#ffd45e'],28:['KALAHARI DESERT, 1960s','#ffd45e'],34:['= 2.5 DAYS OF WORK','#ffd45e'],39:['70,000 YEARS OLD','#ffd45e'],40:['40,000 YEARS OLD','#ffd45e'],49:['THEN CAME THE NIGHT','#9ab0ff'],51:['NIGHT TALK = STORIES','#9ab0ff'],54:['10,000 YEARS AGO','#ffd45e'],55:['FARMING BEGINS','#7ee08a'],63:['TAXES + WAGE LABOUR','#ff9a6a'],72:['NO CARS. NO PHONES.','#ffd45e'],74:['A DAY THAT WAS HIS','#ffd45e'],78:['WHAT WOULD YOU DO TODAY?','#ffd45e']};
+const HL=/^(\d[\d,.]*|free|time|alarm|work|farming|retirement|music|belonged|stories|taxes|cavities|harder|steady|hunt|hours|week)$/i;
+const SHK=[1,3,12,32,54,63,74];
+function cap(txt){G.font='bold 78px DejaVu Sans Mono,Courier New,monospace';G.textAlign='left';G.textBaseline='alphabetic';const sp=G.measureText(' ').width;
+const ws=txt.split(' ').map(w=>({w,ww:G.measureText(w).width}));const tot=ws.reduce((a,o)=>a+o.ww+sp,-sp);
+const L=tot>1780?[ws.slice(0,Math.ceil(ws.length/2)),ws.slice(Math.ceil(ws.length/2))]:[ws];const y0=L.length==1?985:900;
+L.forEach((ln,r)=>{const w=ln.reduce((a,o)=>a+o.ww+sp,-sp);let x=960-w/2;ln.forEach(o=>{const y=y0+r*92;G.lineWidth=18;G.lineJoin='round';G.strokeStyle='#0a0519';G.strokeText(o.w,x,y);G.fillStyle=HL.test(o.w.replace(/[^\w,]/g,''))?'#ffd45e':'#fff';G.fillText(o.w,x,y);x+=o.ww+sp})})}
+function ov(idx,lt,d){let a=null;
+if(idx==3)a=[Math.round(50000*Math.min(1,lt/(d*.85))).toLocaleString()+' YEARS AGO','#ffd45e',120];
+else if(idx==32)a=[Math.round(17*Math.min(1,lt/(d*.7)))+' HOURS / WEEK','#ffd45e',130];
+else if(idx>=67&&idx<=68){const p=Math.min(1,(TT-C[67].s)/(C[70].s-C[67].s));a=['AGE '+(22+Math.round(p*43))+'  ->  RETIREMENT','#ff9a6a',84]}
+else if(OV[idx])a=[OV[idx][0],OV[idx][1],84];
+G.textAlign='center';G.lineJoin='round';G.strokeStyle='#0a0519';
+if(a){G.font='bold '+a[2]+'px DejaVu Sans Mono,Courier New,monospace';G.lineWidth=18;G.strokeText(a[0],960,300);G.fillStyle=a[1];G.fillText(a[0],960,300)}
+if(idx==78){G.font='bold 60px DejaVu Sans Mono,Courier New,monospace';G.strokeText('COMMENT BELOW',960,400);G.fillStyle='#fff';G.fillText('COMMENT BELOW',960,400)}
+if(idx>=10&&idx<=13){G.font='bold 54px DejaVu Sans Mono,Courier New,monospace';G.lineWidth=14;[['HUNTER-GATHERER',480,'#7ee08a'],['EARLY FARMER',1440,'#ff9a6a']].forEach(o=>{G.strokeText(o[0],o[1],150);G.fillStyle=o[2];G.fillText(o[0],o[1],150)})}}
+window.render=t=>{TT=t;const f=Math.floor(t*12)/12;let idx=C.length-1;for(let i=0;i<C.length;i++)if(t<C[i].e){idx=i;break}
+const ch=C[idx],lt=Math.max(0,t-ch.s),d=ch.d,k=sceneOf(idx),ss=C[SCS[k][0]].s,u=Math.max(0,t-ss);
+let ci=0;const fr=Math.min(.999,lt/d);ch.ch.forEach((c,j)=>{if(fr>=c.f0)ci=j});
+const shk=SHK.includes(idx)&&lt<.2&&t>=ch.s,sf=shk?Math.floor(t*40)%2:-1;
+const key=Math.floor(t*12)+'|'+idx+'|'+ci+'|'+sf;if(key===lastKey)return key;lastKey=key;
+S[SCS[k][1]](idx,f,lt,d,u);
+if(k>0){const p=Math.min(1,u/.4);if(p<1)for(let y=0;y<H;y++)if(((y*7)%11)/11>p)px(0,y,W,1,'#000')}
+G.fillStyle='#000';G.fillRect(0,0,1920,1080);G.imageSmoothingEnabled=false;
+const ox=shk?(sf?8:-8):0,oy=shk?(sf?-6:6):0;G.drawImage(sm,ox,oy,W*Z,H*Z);
+G.fillStyle='rgba(0,0,0,.38)';G.fillRect(0,820,1920,260);
+if(t>=ch.s)ov(idx,lt,d);
+if(t<5.5){G.font='bold 56px DejaVu Sans Mono,Courier New,monospace';G.textAlign='center';G.fillStyle='rgba(0,0,0,.6)';G.fillRect(0,50,1920,100);G.fillStyle='#ffd45e';G.fillText('THE PEOPLE WHO HAD MORE FREE TIME THAN YOU',960,118)}
+if(t>=ch.s)cap(ch.ch[ci].s);
+const tot=C[C.length-1].e;G.fillStyle='#ffd45e';G.fillRect(0,1070,1920*Math.min(1,t/tot),10);
+if(t<.4){G.fillStyle='rgba(0,0,0,'+(1-t/.4)+')';G.fillRect(0,0,1920,1080)}
+return key};
+window.__ready=true;
+</script></body></html>
