@@ -1,7 +1,7 @@
 name: Make Reel
 
 # Two ways to trigger:
-# 1) Push (chat commits reels/<name>/index.html [+ video.json, audio.json, music.wav|mp3]) -> renders automatically.
+# 1) Push (chat commits reels/<n>/index.html [+ video.json, audio.json, music.wav|mp3]) -> renders automatically.
 # 2) Manual run with `name` (+ optional inline `html` payload) -> renders that reel.
 # If no reel changed in a run, the render, upload and publish steps are skipped (the run still passes).
 #
@@ -9,16 +9,18 @@ name: Make Reel
 # are spoken with Gemini TTS and the video timing follows the voice. Without the secret, nothing changes.
 # Extra keys: add secrets GEMINI_API_KEY_2 and GEMINI_API_KEY_3 (up to _5 is read); when one key hits its limit
 # the next one is used. Keys from the same Google Cloud project share one quota, so use keys from different projects.
-# Optional repo variables: GEMINI_VOICE (default Kore), GEMINI_TTS_MODEL (default gemini-3.8-flash-lite-tts).
+# Optional repo variables: GEMINI_VOICE (default Puck), GEMINI_TTS_MODEL (default gemini-3.8-flash-tts, the same model as the
+# Hindi Shorts pipeline; gemini-2.5-flash-preview-tts is used automatically as the fallback).
 #
-# Sound: reels/<name>/audio.json can add background music and sound effects from the sounds/ library
+# Sound: reels/<n>/audio.json can add background music and sound effects from the sounds/ library
 # (see skills/code-video/SKILL.md). The library comes from sounds/ in the repo and from any .zip attached
 # to the GitHub Release tagged "sounds" (use that for files over 100 MB); zips are unpacked before rendering.
 #
-# YouTube: if the repo secret BUFFER_API_KEY is set, each rendered reel is uploaded to a temporary public host
-# (Uguu, free; Cloudinary as a fallback if the secret CLOUDINARY_URL is set) and scheduled on your YouTube channel
-# via Buffer 1 minute later.
-# Optional repo variables: BUFFER_CHANNEL_ID, BUFFER_YOUTUBE_PRIVACY (public|unlisted|private), BUFFER_YOUTUBE_CATEGORY.
+# YouTube + Instagram: if the repo secret BUFFER_API_KEY is set, each rendered reel is uploaded to a temporary public host
+# (Uguu, free; Cloudinary as a fallback if the secret CLOUDINARY_URL is set) and scheduled via Buffer 1 minute later
+# on your YouTube channel (Shorts) and your Instagram account (Reels).
+# Optional repo variables: BUFFER_CHANNEL_ID (YouTube), BUFFER_INSTAGRAM_CHANNEL_ID, BUFFER_INSTAGRAM (set to off to skip Instagram),
+# BUFFER_YOUTUBE_PRIVACY (public|unlisted|private), BUFFER_YOUTUBE_CATEGORY.
 #
 # Caches (so later runs are faster): the unpacked sound library (re-downloaded only when the release zips change),
 # the Playwright browser + npm downloads, and the generated voice-over clips (a line that didn't change is not re-generated).
@@ -35,7 +37,7 @@ on:
         description: 'Reel folder name under reels/ (letters, numbers, - _)'
         required: true
       html:
-        description: 'Optional: full index.html payload (overwrites reels/<name>/index.html)'
+        description: 'Optional: full index.html payload (overwrites reels/<n>/index.html)'
         required: false
       width:
         description: 'Width (used only if video.json is missing)'
@@ -194,7 +196,7 @@ jobs:
         env:
           LIST: ${{ steps.prep.outputs.list }}
           GEMINI_VOICE: ${{ vars.GEMINI_VOICE }}
-          GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL || 'gemini-3.8-flash-lite-tts' }}
+          GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL || 'gemini-3.8-flash-tts' }}
           TTS_CACHE_DIR: ${{ github.workspace }}/.tts-cache
         run: |
           set -e
@@ -242,12 +244,14 @@ jobs:
           path: reels/*/video.mp4
           if-no-files-found: error
 
-      - name: Publish to YouTube via Buffer
+      - name: Publish to YouTube Shorts + Instagram Reels via Buffer
         if: ${{ steps.prep.outputs.list != '' && env.BUFFER_API_KEY != '' }}
         env:
           LIST: ${{ steps.prep.outputs.list }}
           CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
           BUFFER_CHANNEL_ID: ${{ vars.BUFFER_CHANNEL_ID }}
+          BUFFER_INSTAGRAM_CHANNEL_ID: ${{ vars.BUFFER_INSTAGRAM_CHANNEL_ID }}
+          BUFFER_INSTAGRAM: ${{ vars.BUFFER_INSTAGRAM }}
           BUFFER_YOUTUBE_PRIVACY: ${{ vars.BUFFER_YOUTUBE_PRIVACY }}
           BUFFER_YOUTUBE_CATEGORY: ${{ vars.BUFFER_YOUTUBE_CATEGORY }}
         run: |
