@@ -3,6 +3,7 @@ name: Make Reel
 # Two ways to trigger:
 # 1) Push (chat commits reels/<name>/index.html [+ video.json, audio.json, music.wav|mp3]) -> renders automatically.
 # 2) Manual run with `name` (+ optional inline `html` payload) -> renders that reel.
+# If no reel changed in a run, the render, upload and publish steps are skipped (the run still passes).
 #
 # Voice-over: if the repo secret GEMINI_API_KEY is set, each reel's caption lines (TXT in index.html)
 # are spoken with Gemini TTS and the video timing follows the voice. Without the secret, nothing changes.
@@ -12,8 +13,9 @@ name: Make Reel
 # (see skills/code-video/SKILL.md). The library comes from sounds/ in the repo and from any .zip attached
 # to the GitHub Release tagged "sounds" (use that for files over 100 MB); zips are unpacked before rendering.
 #
-# YouTube: if the repo secret BUFFER_API_KEY is set, each rendered reel is uploaded to Cloudinary (secret CLOUDINARY_URL,
-# because Buffer only accepts a public video URL) and scheduled on your YouTube channel via Buffer 1 minute later.
+# YouTube: if the repo secret BUFFER_API_KEY is set, each rendered reel is uploaded to a temporary public host
+# (Uguu, free; Cloudinary as a fallback if the secret CLOUDINARY_URL is set) and scheduled on your YouTube channel
+# via Buffer 1 minute later.
 # Optional repo variables: BUFFER_CHANNEL_ID, BUFFER_YOUTUBE_PRIVACY (public|unlisted|private), BUFFER_YOUTUBE_CATEGORY.
 on:
   push:
@@ -61,23 +63,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install FFmpeg
-        run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
-
-      - name: Fetch and unpack sound library
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          shopt -s nullglob
-          # zips attached to the release tagged "sounds" (for files over 100 MB)
-          if gh release view sounds >/dev/null 2>&1; then
-            gh release download sounds --pattern '*.zip' --dir sounds --clobber
-          fi
-          for z in sounds/*.zip; do
-            d="${z%.zip}"
-            [ -d "$d" ] || unzip -q "$z" -d "$d"
-          done
-
       - name: Prepare reel folders
         id: prep
         env:
@@ -106,9 +91,30 @@ jobs:
               echo "{\"width\":${W:-1080},\"height\":${H:-1920},\"fps\":${FPS:-30},\"duration\":${DUR:-10}}" > "reels/$n/video.json"
             fi
           done
+          if [ -z "$LIST" ]; then echo "No reel changed in this run: nothing to render."; fi
           echo "list=$(echo $LIST)" >> "$GITHUB_OUTPUT"
 
+      - name: Install FFmpeg
+        if: ${{ steps.prep.outputs.list != '' }}
+        run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
+
+      - name: Fetch and unpack sound library
+        if: ${{ steps.prep.outputs.list != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          # zips attached to the release tagged "sounds" (for files over 100 MB)
+          if gh release view sounds >/dev/null 2>&1; then
+            gh release download sounds --pattern '*.zip' --dir sounds --clobber
+          fi
+          for z in sounds/*.zip; do
+            d="${z%.zip}"
+            [ -d "$d" ] || unzip -q "$z" -d "$d"
+          done
+
       - name: Render reels
+        if: ${{ steps.prep.outputs.list != '' }}
         env:
           LIST: ${{ steps.prep.outputs.list }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -140,6 +146,7 @@ jobs:
           done
 
       - name: Upload reels
+        if: ${{ steps.prep.outputs.list != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: reels
@@ -147,7 +154,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish to YouTube via Buffer
-        if: ${{ env.BUFFER_API_KEY != '' }}
+        if: ${{ steps.prep.outputs.list != '' && env.BUFFER_API_KEY != '' }}
         env:
           LIST: ${{ steps.prep.outputs.list }}
           CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
