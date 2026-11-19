@@ -12,10 +12,12 @@
 // two smaller calls, down to one line per call, so sync never silently breaks.
 // Every cut line is kept in TTS_CACHE_DIR, so a re-render only generates lines that changed.
 //
+// Voice for this repo: an engaging young male social-media reels narrator (voice "Puck", upbeat style) on every reel.
+//
 // Usage (inside the reel folder): node <skill>/scripts/tts.mjs index.html [voice.wav] [timing.json]
 // Needs: GEMINI_API_KEY (Google AI Studio key), playwright in this folder.
 // Optional env: GEMINI_API_KEY_2 .. GEMINI_API_KEY_5 (extra keys; keys in the SAME Google project share one quota),
-//               GEMINI_TTS_MODEL (default gemini-3.8-flash-lite-tts), GEMINI_VOICE (default Kore), GEMINI_TTS_STYLE,
+//               GEMINI_TTS_MODEL (default gemini-3.8-flash-lite-tts), GEMINI_VOICE (default Puck), GEMINI_TTS_STYLE,
 //               TTS_BATCH_CHARS (default 600), TTS_BATCH_LINES (default 12), TTS_MIN_PAUSE_MS (default 120),
 //               TTS_MIN_INTERVAL (seconds between calls on one key, default 7), TTS_CACHE_DIR
 import fs from 'node:fs';
@@ -31,8 +33,8 @@ if (!KEYS.length) { console.error('GEMINI_API_KEY is not set'); process.exit(1);
 const ks = KEYS.map((key, i) => ({ key, n: i + 1, readyAt: 0, dead: false })); // readyAt: earliest time this key may be used again
 console.log(`Gemini keys in use: ${ks.length}`);
 const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-lite-tts';
-const VOICE = process.env.GEMINI_VOICE || 'Kore';
-const STYLE = process.env.GEMINI_TTS_STYLE || 'clear, engaging storyteller';
+const VOICE = process.env.GEMINI_VOICE || 'Puck';
+const STYLE = process.env.GEMINI_TTS_STYLE || 'an engaging young guy narrating a viral social media reel: upbeat, fast-paced, hyped and curious, friendly, with a punchy hook';
 const BATCH_STYLE = STYLE + '; leave a clear pause of about half a second between paragraphs';
 const CACHE = process.env.TTS_CACHE_DIR || '';
 const MIN_GAP = Math.max(0, Number(process.env.TTS_MIN_INTERVAL ?? 7)) * 1000;
