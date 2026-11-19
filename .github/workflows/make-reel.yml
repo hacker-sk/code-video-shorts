@@ -9,7 +9,8 @@ name: Make Reel
 # Optional repo variables: GEMINI_VOICE (default Kore), GEMINI_TTS_MODEL.
 #
 # Sound: reels/<name>/audio.json can add background music and sound effects from the sounds/ library
-# (see skills/code-video/SKILL.md). Zips in sounds/ are unpacked before rendering.
+# (see skills/code-video/SKILL.md). The library comes from sounds/ in the repo and from any .zip attached
+# to the GitHub Release tagged "sounds" (use that for files over 100 MB); zips are unpacked before rendering.
 #
 # YouTube: if the repo secret BUFFER_API_KEY is set, each rendered reel is uploaded to Cloudinary (secret CLOUDINARY_URL,
 # because Buffer only accepts a public video URL) and scheduled on your YouTube channel via Buffer 1 minute later.
@@ -63,9 +64,15 @@ jobs:
       - name: Install FFmpeg
         run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
 
-      - name: Unpack sound zips
+      - name: Fetch and unpack sound library
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           shopt -s nullglob
+          # zips attached to the release tagged "sounds" (for files over 100 MB)
+          if gh release view sounds >/dev/null 2>&1; then
+            gh release download sounds --pattern '*.zip' --dir sounds --clobber
+          fi
           for z in sounds/*.zip; do
             d="${z%.zip}"
             [ -d "$d" ] || unzip -q "$z" -d "$d"

@@ -2,7 +2,9 @@ name: Sound Catalog
 
 # Rebuilds sounds/CATALOG.md and sounds/index/*.txt whenever the sound library changes,
 # so the chat can find sounds by name without reading 3000 files.
-# Zips in sounds/ (e.g. sounds/sfx.zip, sounds/bgm.zip) are unpacked first (into sounds/sfx/, sounds/bgm/).
+# The library can be folders in sounds/, zips in sounds/, or zips attached to the GitHub Release tagged "sounds"
+# (for files over 100 MB). Zips are unpacked first (sounds/sfx.zip -> sounds/sfx/).
+# After attaching zips to an existing release, run this workflow by hand (Actions > Sound Catalog > Run workflow).
 on:
   push:
     branches: [main]
@@ -10,6 +12,8 @@ on:
       - 'sounds/**'
       - '!sounds/index/**'
       - '!sounds/CATALOG.md'
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -22,6 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           lfs: true
 
       - uses: actions/setup-node@v4
@@ -31,9 +36,14 @@ jobs:
       - name: Install FFmpeg
         run: sudo apt-get update -y && sudo apt-get install -y ffmpeg
 
-      - name: Unpack sound zips
+      - name: Fetch and unpack sound library
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           shopt -s nullglob
+          if gh release view sounds >/dev/null 2>&1; then
+            gh release download sounds --pattern '*.zip' --dir sounds --clobber
+          fi
           for z in sounds/*.zip; do
             d="${z%.zip}"
             [ -d "$d" ] || unzip -q "$z" -d "$d"
