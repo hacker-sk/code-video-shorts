@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// Gemini TTS voice-over that is locked to the video's caption timing.
+// Gemini 3.8 TTS voice-over that is locked to the video's caption timing.
 // Reads the caption lines (TXT) from the page, speaks each line, then writes:
 //   voice.wav    one audio track; line i starts exactly where its caption starts
 //   timing.json  {"d":[seconds per line],"total":seconds}; render.mjs feeds it to the page as window.__TIMING
 // Because the audio decides how long each line lasts, voice and captions/animation can't drift apart.
 // Usage (inside the reel folder): node <skill>/scripts/tts.mjs index.html [voice.wav] [timing.json]
-// Needs: GEMINI_API_KEY, playwright in this folder. Optional env: GEMINI_TTS_MODEL, GEMINI_VOICE, GEMINI_TTS_STYLE.
+// Needs: GEMINI_API_KEY (Google AI Studio key), playwright in this folder.
+// Optional env: GEMINI_TTS_MODEL (default gemini-3.8-flash-tts), GEMINI_VOICE (default Kore), GEMINI_TTS_STYLE.
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -14,12 +15,12 @@ import { pathToFileURL } from 'node:url';
 const ROOT = process.cwd();
 const KEY = process.env.GEMINI_API_KEY;
 if (!KEY) { console.error('GEMINI_API_KEY is not set'); process.exit(1); }
-const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-2.5-flash-preview-tts';
+const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-tts';
 const VOICE = process.env.GEMINI_VOICE || 'Kore';
-const STYLE = process.env.GEMINI_TTS_STYLE || 'Say in a clear, engaging storytelling voice: ';
+const STYLE = process.env.GEMINI_TTS_STYLE || 'clear, engaging storyteller';
 const [page = 'index.html', wavOut = 'voice.wav', timingOut = 'timing.json'] = process.argv.slice(2);
-const RATE = 24000;                 // Gemini TTS returns 24 kHz, 16-bit, mono PCM
 const LEAD = 0.5, GAP = 0.3, TAIL = 0.8; // LEAD must match the page's start offset (cs=.5)
+let RATE = 24000;                          // replaced by the sample rate Gemini's WAV reports
 
 // 1) caption lines come from the page itself, so voice and captions can't differ
 const { chromium } = createRequire(path.join(ROOT, 'package.json'))('playwright');
@@ -31,12 +32,13 @@ const lines = await tab.evaluate(() => (typeof TXT !== 'undefined' ? TXT : windo
 await browser.close();
 if (!Array.isArray(lines) || !lines.length) { console.error('no TXT array of caption lines found in ' + page); process.exit(1); }
 
-// 2) one Gemini TTS call per line (retries on rate limits / server errors)
+// 2) one Gemini TTS call per line (retries on rate limits / server errors).
+// Gemini 3.8 reads `text` literally, so the speaking style goes in speechMetadata, never in the text.
 async function tts(text) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
   const body = JSON.stringify({
-    contents: [{ parts: [{ text: STYLE + text }] }],
-    generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } }
+    contents: [{ role: 'user', parts: [{ text, speechMetadata: { style: STYLE } }] }],
+    generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { voice: VOICE } } }
   });
   for (let a = 0; a < 6; a++) {
     const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY }, body });
@@ -52,9 +54,28 @@ async function tts(text) {
   throw new Error('Gemini TTS failed after retries');
 }
 
+// Gemini 3.8 returns a complete WAV file: pull out the 16-bit mono samples and the sample rate
+// (a bare PCM buffer is still accepted as 24 kHz)
+function pcmOf(buf) {
+  let pcm = buf;
+  if (buf.length > 44 && buf.toString('ascii', 0, 4) === 'RIFF') {
+    let p = 12, found = false;
+    while (p + 8 <= buf.length) {
+      const id = buf.toString('ascii', p, p + 4), size = buf.readUInt32LE(p + 4);
+      if (id === 'fmt ') {
+        const ch = buf.readUInt16LE(p + 10), bits = buf.readUInt16LE(p + 22);
+        if (ch !== 1 || bits !== 16) throw new Error(`expected 16-bit mono WAV, got ${ch} ch / ${bits} bit`);
+        RATE = buf.readUInt32LE(p + 12);
+      } else if (id === 'data') { pcm = buf.subarray(p + 8, Math.min(buf.length, p + 8 + size)); found = true; break; }
+      p += 8 + size + (size & 1);
+    }
+    if (!found) throw new Error('WAV from Gemini has no data chunk');
+  }
+  return new Int16Array(pcm.buffer.slice(pcm.byteOffset, pcm.byteOffset + (pcm.length & ~1)));
+}
+
 // cut silence at both ends of a clip (keeps 50 ms) so lines sit tight against their captions
-function trim(pcm) {
-  const s = new Int16Array(pcm.buffer.slice(pcm.byteOffset, pcm.byteOffset + (pcm.length & ~1)));
+function trim(s) {
   const TH = 500, pad = Math.round(0.05 * RATE);
   let a = 0, b = s.length;
   while (a < b && Math.abs(s[a]) < TH) a++;
@@ -64,7 +85,7 @@ function trim(pcm) {
 }
 
 const n = lines.length, clips = [];
-for (let i = 0; i < n; i++) { console.log(`TTS ${i + 1}/${n}`); clips.push(trim(await tts(lines[i]))); }
+for (let i = 0; i < n; i++) { console.log(`TTS ${i + 1}/${n}`); clips.push(trim(pcmOf(await tts(lines[i])))); }
 
 // 3) lay clips on one timeline; each line's slot = clip length + gap, so slots are the caption durations
 const leadS = Math.round(LEAD * RATE), gapS = Math.round(GAP * RATE), tailS = Math.round(TAIL * RATE);
