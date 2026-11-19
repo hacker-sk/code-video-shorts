@@ -13,11 +13,14 @@
 // Every cut line is kept in TTS_CACHE_DIR, so a re-render only generates lines that changed.
 //
 // Voice for this repo: an engaging young male social-media reels narrator (voice "Puck", upbeat style) on every reel.
+// Models and request format are the same as the working Hindi Shorts pipeline (stickman-renderer): gemini-3.8-flash-tts first,
+// then gemini-2.5-flash-preview-tts as the fallback. 3.x models take the voice as voiceConfig.voice and the style in
+// speech_metadata; the 2.5 model takes a prebuilt voice name and the style as a sentence in front of the text.
 //
 // Usage (inside the reel folder): node <skill>/scripts/tts.mjs index.html [voice.wav] [timing.json]
 // Needs: GEMINI_API_KEY (Google AI Studio key), playwright in this folder.
 // Optional env: GEMINI_API_KEY_2 .. GEMINI_API_KEY_5 (extra keys; keys in the SAME Google project share one quota),
-//               GEMINI_TTS_MODEL (default gemini-3.8-flash-lite-tts), GEMINI_VOICE (default Puck), GEMINI_TTS_STYLE,
+//               GEMINI_TTS_MODEL (tried first; default gemini-3.8-flash-tts), GEMINI_VOICE (default Puck), GEMINI_TTS_STYLE,
 //               TTS_BATCH_CHARS (default 600), TTS_BATCH_LINES (default 12), TTS_MIN_PAUSE_MS (default 120),
 //               TTS_MIN_INTERVAL (seconds between calls on one key, default 7), TTS_CACHE_DIR
 import fs from 'node:fs';
@@ -30,9 +33,13 @@ const ROOT = process.cwd();
 const KEYS = [process.env.GEMINI_API_KEY, ...[2, 3, 4, 5].map(i => process.env['GEMINI_API_KEY_' + i])]
   .map(k => (k || '').trim()).filter(Boolean);
 if (!KEYS.length) { console.error('GEMINI_API_KEY is not set'); process.exit(1); }
-const ks = KEYS.map((key, i) => ({ key, n: i + 1, readyAt: 0, dead: false })); // readyAt: earliest time this key may be used again
+// readyAt: earliest time this key may be used again; dead: models for which this key's daily quota is used up
+const ks = KEYS.map((key, i) => ({ key, n: i + 1, readyAt: 0, dead: new Set() }));
 console.log(`Gemini keys in use: ${ks.length}`);
-const MODEL = process.env.GEMINI_TTS_MODEL || 'gemini-3.8-flash-lite-tts';
+const MODELS = [...new Set([process.env.GEMINI_TTS_MODEL, 'gemini-3.8-flash-tts', 'gemini-2.5-flash-preview-tts']
+  .map(m => (m || '').trim()).filter(Boolean))];
+const MODEL = MODELS[0]; // first choice; also part of the per-line cache key
+console.log(`Gemini TTS models: ${MODELS.join(' -> ')}`);
 const VOICE = process.env.GEMINI_VOICE || 'Puck';
 const STYLE = process.env.GEMINI_TTS_STYLE || 'an engaging young guy narrating a viral social media reel: upbeat, fast-paced, hyped and curious, friendly, with a punchy hook';
 const BATCH_STYLE = STYLE + '; leave a clear pause of about half a second between paragraphs';
@@ -56,38 +63,70 @@ if (!Array.isArray(lines) || !lines.length) { console.error('no TXT array of cap
 
 // 2) one Gemini TTS call (for one line or a batch).
 // Each call goes to the key that is ready soonest, so several keys share the work and each stays under its
-// per-minute limit. A key that reports its daily quota is used up is dropped for the rest of the run; on a
+// per-minute limit. A key that reports its daily quota is used up is dropped (for that model) for the rest of the run; on a
 // per-minute 429 that key rests for the time Google asks (Retry-After / retryDelay) while another key carries on.
-// Gemini 3.8 reads `text` literally, so the speaking style goes in speechMetadata, never in the text.
+// If a model is not usable (unknown model, rejected request, every key out of daily quota) the next model in MODELS is used.
+// The speaking style goes in speech_metadata (3.x models), never in the text itself.
 const sleep = ms => new Promise(res => setTimeout(res, ms));
+
+function requestBody(model, text, style) {
+  if (model.startsWith('gemini-3')) {
+    const part = { text };
+    if (style) part.speech_metadata = { style };
+    return {
+      contents: [{ parts: [part] }],
+      generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { voice: VOICE } } }
+    };
+  }
+  // older 2.5 TTS models: prebuilt voice name, style as a sentence in front of the script
+  return {
+    contents: [{ parts: [{ text: style ? `Say this in a ${style} voice: ${text}` : text }] }],
+    generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } }
+  };
+}
+
+const deadModels = new Set();
 async function tts(text, style) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
-  const body = JSON.stringify({
-    contents: [{ role: 'user', parts: [{ text, speechMetadata: { style } }] }],
-    generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { voice: VOICE } } }
-  });
+  let last;
+  for (const model of MODELS) {
+    if (deadModels.has(model)) continue;
+    try { return await ttsWith(model, text, style); }
+    catch (e) {
+      if (!e.nextModel) throw e;
+      last = e; deadModels.add(model);
+      console.error(`  model ${model} is not usable (${String(e.message).slice(0, 220)}), switching to the next model`);
+    }
+  }
+  throw last || new Error('Gemini TTS: no usable model');
+}
+
+async function ttsWith(model, text, style) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  const body = JSON.stringify(requestBody(model, text, style));
+  const fail = (msg, nextModel) => Object.assign(new Error(msg), { nextModel });
   const TRIES = 8 * ks.length;
   for (let a = 0; a < TRIES; a++) {
-    const live = ks.filter(k => !k.dead);
-    if (!live.length) throw new Error('Gemini TTS: every key has used up its daily quota');
+    const live = ks.filter(k => !k.dead.has(model));
+    if (!live.length) throw fail(`Gemini TTS (${model}): every key has used up its daily quota`, true);
     const k = live.reduce((x, y) => (y.readyAt < x.readyAt ? y : x));
     const wait = k.readyAt - Date.now();
     if (wait > 0) { if (wait > 5000) console.error(`  all keys busy, waiting ${Math.round(wait / 1000)}s`); await sleep(wait); }
     k.readyAt = Date.now() + MIN_GAP;
     const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': k.key }, body });
     if (r.ok) {
-      const b64 = (await r.json()).candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      const parts = (await r.json()).candidates?.[0]?.content?.parts || [];
+      const b64 = parts.map(p => (p.inlineData || p.inline_data)?.data).find(Boolean);
       if (b64) return Buffer.from(b64, 'base64');
-      console.error(`  key ${k.n}: no audio in response (try ${a + 1}/${TRIES}), retrying`);
+      console.error(`  key ${k.n} (${model}): no audio in response (try ${a + 1}/${TRIES}), retrying`);
       k.readyAt = Date.now() + 5000;
       continue;
     }
     const t = await r.text();
-    if (r.status !== 429 && r.status < 500) throw new Error(`Gemini TTS ${r.status} (key ${k.n}): ${t.slice(0, 300)}`);
-    console.error(`  key ${k.n}: Gemini ${r.status} (try ${a + 1}/${TRIES}): ${t.replace(/\s+/g, ' ').slice(0, 250)}`);
+    if (r.status !== 429 && r.status < 500) throw fail(`Gemini TTS ${model} ${r.status} (key ${k.n}): ${t.slice(0, 300)}`, [400, 403, 404].includes(r.status));
+    console.error(`  key ${k.n} (${model}): Gemini ${r.status} (try ${a + 1}/${TRIES}): ${t.replace(/\s+/g, ' ').slice(0, 250)}`);
     if (/PerDay|per day|daily/i.test(t)) {
-      k.dead = true;
-      console.error(`  key ${k.n}: daily quota used up, ${ks.filter(x => !x.dead).length} key(s) left`);
+      k.dead.add(model);
+      console.error(`  key ${k.n}: daily quota used up for ${model}, ${ks.filter(x => !x.dead.has(model)).length} key(s) left`);
       continue;
     }
     let delay = Math.min(90000, 15000 + a * 5000);
@@ -97,11 +136,11 @@ async function tts(text, style) {
     else if (m) delay = Math.ceil(Number(m[1]) * 1000) + 1000;
     k.readyAt = Date.now() + Math.min(delay, 120000);
   }
-  throw new Error('Gemini TTS failed after retries');
+  throw fail(`Gemini TTS (${model}) failed after retries`, true);
 }
 
 // Gemini 3.8 returns a complete WAV file: pull out the 16-bit mono samples and the sample rate
-// (a bare PCM buffer is still accepted as 24 kHz)
+// (a bare PCM buffer, as the 2.5 models send, is still accepted as 24 kHz)
 function pcmOf(buf) {
   let pcm = buf;
   if (buf.length > 44 && buf.toString('ascii', 0, 4) === 'RIFF') {
