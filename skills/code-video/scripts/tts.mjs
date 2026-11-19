@@ -13,9 +13,9 @@
 // Every cut line is kept in TTS_CACHE_DIR, so a re-render only generates lines that changed.
 //
 // Voice for this repo: an engaging young male social-media reels narrator (voice "Puck", upbeat style) on every reel.
-// Models and request format are the same as the working Hindi Shorts pipeline (stickman-renderer): gemini-3.8-flash-tts first,
-// then gemini-2.5-flash-preview-tts as the fallback. 3.x models take the voice as voiceConfig.voice and the style in
-// speech_metadata; the 2.5 model takes a prebuilt voice name and the style as a sentence in front of the text.
+// Models: gemini-3.8-flash-tts first (same as the working Hindi Shorts pipeline in stickman-renderer), then
+// gemini-3.1-flash-tts-preview as the fallback. The 3.8 model takes the voice as voiceConfig.voice and the style in
+// speech_metadata; the 3.1 model takes a prebuilt voice name and the style as a sentence in front of the text.
 //
 // Usage (inside the reel folder): node <skill>/scripts/tts.mjs index.html [voice.wav] [timing.json]
 // Needs: GEMINI_API_KEY (Google AI Studio key), playwright in this folder.
@@ -36,7 +36,7 @@ if (!KEYS.length) { console.error('GEMINI_API_KEY is not set'); process.exit(1);
 // readyAt: earliest time this key may be used again; dead: models for which this key's daily quota is used up
 const ks = KEYS.map((key, i) => ({ key, n: i + 1, readyAt: 0, dead: new Set() }));
 console.log(`Gemini keys in use: ${ks.length}`);
-const MODELS = [...new Set([process.env.GEMINI_TTS_MODEL, 'gemini-3.8-flash-tts', 'gemini-2.5-flash-preview-tts']
+const MODELS = [...new Set([process.env.GEMINI_TTS_MODEL, 'gemini-3.8-flash-tts', 'gemini-3.1-flash-tts-preview']
   .map(m => (m || '').trim()).filter(Boolean))];
 const MODEL = MODELS[0]; // first choice; also part of the per-line cache key
 console.log(`Gemini TTS models: ${MODELS.join(' -> ')}`);
@@ -66,11 +66,11 @@ if (!Array.isArray(lines) || !lines.length) { console.error('no TXT array of cap
 // per-minute limit. A key that reports its daily quota is used up is dropped (for that model) for the rest of the run; on a
 // per-minute 429 that key rests for the time Google asks (Retry-After / retryDelay) while another key carries on.
 // If a model is not usable (unknown model, rejected request, every key out of daily quota) the next model in MODELS is used.
-// The speaking style goes in speech_metadata (3.x models), never in the text itself.
+// The speaking style goes in speech_metadata (3.8 model) or as a sentence before the text (3.1 model).
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 
 function requestBody(model, text, style) {
-  if (model.startsWith('gemini-3')) {
+  if (model.startsWith('gemini-3.8')) {
     const part = { text };
     if (style) part.speech_metadata = { style };
     return {
@@ -78,9 +78,10 @@ function requestBody(model, text, style) {
       generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { voice: VOICE } } }
     };
   }
-  // older 2.5 TTS models: prebuilt voice name, style as a sentence in front of the script
+  // 3.1 (and older 2.5) TTS models: prebuilt voice name, style as a sentence in front of the script
+  const s = (style || '').replace(/^(a|an)\s+/i, '');
   return {
-    contents: [{ parts: [{ text: style ? `Say this in a ${style} voice: ${text}` : text }] }],
+    contents: [{ parts: [{ text: s ? `Say this in a ${s} voice: ${text}` : text }] }],
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } }
   };
 }
@@ -140,7 +141,7 @@ async function ttsWith(model, text, style) {
 }
 
 // Gemini 3.8 returns a complete WAV file: pull out the 16-bit mono samples and the sample rate
-// (a bare PCM buffer, as the 2.5 models send, is still accepted as 24 kHz)
+// (a bare PCM buffer, as the 3.1 and 2.5 models send, is still accepted as 24 kHz)
 function pcmOf(buf) {
   let pcm = buf;
   if (buf.length > 44 && buf.toString('ascii', 0, 4) === 'RIFF') {
