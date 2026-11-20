@@ -1,18 +1,24 @@
 name: Sound Catalog
 
-# Rebuilds sounds/CATALOG.md and sounds/index/*.txt whenever the sound library changes,
-# so the chat can find sounds by name without reading 3000 files.
+# Rebuilds the sound library lists whenever the library changes:
+#   sounds/CATALOG.md, sounds/index/*.txt   folders and every sound's path + length
+#   sounds/library.json, sounds/LIBRARY.md, sounds/tags/*.txt   labels: effect tags (whoosh, hit, riser, fire...) and music moods
+# Reels use library.json to pick suitable effects and several music tracks automatically (see skills/code-video/scripts/plan.mjs).
 # The library can be folders in sounds/, zips in sounds/, or zips attached to the GitHub Release tagged "sounds"
 # (for files over 100 MB). Zips are unpacked first (sounds/sfx.zip -> sounds/sfx/).
 # The unpacked library is cached under the same key the Make Reel workflow uses, so reels start faster too.
-# After attaching zips to an existing release, run this workflow by hand (Actions > Sound Catalog > Run workflow).
+# After attaching zips to an existing release, or editing sounds/overrides.json, run this workflow by hand
+# (Actions > Sound Catalog > Run workflow).
 on:
   push:
     branches: [main]
     paths:
       - 'sounds/**'
       - '!sounds/index/**'
+      - '!sounds/tags/**'
       - '!sounds/CATALOG.md'
+      - '!sounds/LIBRARY.md'
+      - '!sounds/library.json'
   release:
     types: [published]
   workflow_dispatch:
@@ -85,12 +91,12 @@ jobs:
           path: .sound-cache
           key: sounds-${{ steps.snd.outputs.key }}
 
-      - name: Build catalog
+      - name: Build catalog and labels
         run: node skills/code-video/scripts/catalog.mjs sounds
 
       - name: Commit catalog
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add sounds/index sounds/CATALOG.md
-          git diff --cached --quiet || { git commit -m "Update sound catalog" && git push; }
+          git add sounds/index sounds/tags sounds/CATALOG.md sounds/LIBRARY.md sounds/library.json
+          git diff --cached --quiet || { git commit -m "Update sound catalog and labels" && git push; }
