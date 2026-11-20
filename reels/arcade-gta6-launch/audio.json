@@ -1,0 +1,16 @@
+{
+  "bgm": "bgm/AloneInTheUnlimitedMountains",
+  "bgmVolume": 0.15,
+  "sfx": [
+    { "line": 0, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.45 },
+    { "line": 2, "offset": 0.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 6, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.45 },
+    { "line": 8, "offset": 0.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 9, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.4 },
+    { "line": 12, "offset": 0.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 16, "offset": 0.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 17, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.45 },
+    { "line": 20, "offset": 0.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/WHOOSHES", "volume": 0.4 },
+    { "line": 22, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.45 }
+  ]
+}
