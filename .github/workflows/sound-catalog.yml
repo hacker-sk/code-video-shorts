@@ -99,4 +99,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add sounds/index sounds/tags sounds/CATALOG.md sounds/LIBRARY.md sounds/library.json
-          git diff --cached --quiet || { git commit -m "Update sound catalog and labels" && git push; }
+          git diff --cached --quiet || { git commit -m "Update sound catalog and labels" && git pull --rebase origin main && git push; }
