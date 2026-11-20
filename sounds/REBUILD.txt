@@ -1,0 +1,1 @@
+Trigger file: touching sounds/ starts the Sound Catalog workflow. Safe to delete.
