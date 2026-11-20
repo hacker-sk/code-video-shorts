@@ -5,7 +5,7 @@
 <style>html,body{margin:0;background:#000;height:100%}canvas{display:block;width:100vw;height:100vh}</style></head>
 <body><canvas id="c" width="1080" height="1920"></canvas>
 <script>
-// Hand-drawn style, 1080x1920, deterministic window.render(t). Nominal timeline = 77s (scenes + captions are authored on it).
+// Hand-drawn Mahabharata style, 1080x1920, deterministic window.render(t). Nominal timeline = 77s (scenes + captions are authored on it).
 // Voice-driven: TXT = caption lines (tts.mjs speaks them); window.__TIMING (seconds per line, from timing.json) warps the nominal timeline to the voice.
 const W=1080,H=1920,DUR=77,c=document.getElementById('c'),x=c.getContext('2d');
 const PI=Math.PI,cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),R=s=>{s=Math.sin(s*127.1+311.7)*43758.5453;return s-Math.floor(s)};
@@ -20,43 +20,71 @@ function stroke(pts,p,seed,w=6){if(p<=0)return;const d=dens(pts),n=d.length-1,m=
  x.strokeStyle=INK;x.lineCap=x.lineJoin='round';
  for(let ps=0;ps<2;ps++){x.beginPath();o.forEach((q,i)=>{const s=seed+ps*91+i*3.7+BOIL*13.3,px=q[0]+(R(s)-.5)*2.4,py=q[1]+(R(s+1.7)-.5)*2.4;if(i)x.lineTo(px,py);else x.moveTo(px,py)});x.lineWidth=ps?w*.5:w;x.stroke()}}
 const E=(polys,s,d,seed,w)=>polys.forEach((pl,i)=>stroke(pl,cl((LT-s)/d),seed+i*7,w));
-function fig(px,py,s,t,o={}){const sw=o.walk?Math.sin(t*(o.run?11:6))*(o.run?30:18)*s:0,hx=px+(o.turn||0)*s,L=[];
- L.push(circ(hx,py-150*s+(o.low||0)*s,22*s,0,2*PI,16));
+// warrior: o.crown (mukut), o.mace (Bhima's gada), o.bow (Gandiva), o.sit, o.walk/run, o.arms
+function fig(px,py,s,t,o={}){const sw=o.walk?Math.sin(t*(o.run?11:6))*(o.run?30:18)*s:0,hx=px+(o.turn||0)*s,lo=(o.low||0)*s,L=[];
+ L.push(circ(hx,py-150*s+lo,22*s,0,2*PI,16));
+ if(o.crown)L.push([[hx-18*s,py-168*s+lo],[hx-13*s,py-194*s+lo],[hx,py-176*s+lo],[hx+13*s,py-194*s+lo],[hx+18*s,py-168*s+lo]]);
  L.push([[px,py-128*s],[px,py-62*s]]);
  L.push(o.arms?[[px-55*s,py-150*s],[px,py-112*s],[px+55*s,py-150*s]]:[[px-28*s+sw*.4,py-76*s],[px,py-112*s],[px+28*s-sw*.4,py-76*s]]);
  L.push(o.sit?[[px+50*s,py-18*s],[px,py-62*s],[px-10*s,py-18*s]]:[[px-sw,py],[px,py-62*s],[px+sw,py]]);
+ if(o.mace){L.push([[px+42*s,py-30*s],[px+42*s,py-140*s]]);L.push(circ(px+42*s,py-154*s,17*s,0,2*PI,10))}
  if(o.bow){const bx=px+30*s,by=py-100*s,r=55*s;L.push(circ(bx,by,r,-1.2,1.2,12));L.push([[bx+Math.cos(-1.2)*r,by+Math.sin(-1.2)*r],[bx+Math.cos(1.2)*r,by+Math.sin(1.2)*r]])}
  return L}
-const tent=px=>[[[px-120,1150],[px,960],[px+120,1150],[px-120,1150]],[[px-30,1150],[px,1060],[px+30,1150]],[[px,960],[px,880]],[[px,880],[px+40,900],[px+46,950]]];
+const wheel=(cx,cy,r,a)=>{const L=[circ(cx,cy,r,0,2*PI,22),circ(cx,cy,r*.2,0,2*PI,8)];for(let i=0;i<8;i++){const q=a+i*PI/4;L.push([[cx+Math.cos(q)*r*.2,cy+Math.sin(q)*r*.2],[cx+Math.cos(q)*r,cy+Math.sin(q)*r]])}return L};
+const flag=(px,py,h,t)=>[[[px,py],[px,py-h]],[[px,py-h],[px-50+Math.sin(t*4)*8,py-h+18],[px,py-h+38]]];
+// ratha: spoked wheel, car, pole, horse, and the war banner
+const chariot=(px,py,s,a,t)=>{const L=wheel(px,py-60*s,60*s,a);
+ L.push([[px-90*s,py-120*s],[px+90*s,py-120*s],[px+90*s,py-210*s],[px-90*s,py-210*s],[px-90*s,py-120*s]]);
+ L.push([[px+90*s,py-170*s],[px+250*s,py-130*s]],ell(px+300*s,py-130*s,55*s,28*s,14),[[px+270*s,py-105*s],[px+265*s,py-40*s]],[[px+330*s,py-105*s],[px+338*s,py-40*s]],[[px+340*s,py-145*s],[px+368*s,py-205*s],[px+400*s,py-195*s],[px+372*s,py-152*s]]);
+ return L.concat(flag(px-70*s,py-210*s,140*s,t))};
+const conch=(cx,cy,s)=>[ell(cx,cy,60*s,34*s,14),circ(cx-8*s,cy,18*s,0,2*PI*1.2,12),[[cx+58*s,cy-6*s],[cx+90*s,cy-18*s]]];
+const diya=(cx,cy,s,t)=>[[[cx-30*s,cy],[cx-20*s,cy+16*s],[cx+20*s,cy+16*s],[cx+30*s,cy]],[[cx,cy-3*s],[cx-11*s+Math.sin(t*5)*3*s,cy-26*s],[cx+Math.sin(t*5+1)*5*s,cy-52*s],[cx+11*s,cy-26*s],[cx,cy-3*s]]];
+const tent=px=>[[[px-120,1150],[px,960],[px+120,1150],[px-120,1150]],[[px-30,1150],[px,1060],[px+30,1150]]].concat(flag(px,960,90,LT));
 
+// 1: sunset over Kurukshetra, Arjun's ratha (Hanuman banner) rolls home
 const S1=()=>{const g=1050;E([[[40,g],[1040,g]],[[40,1290],[1040,1290]]],0,1.5,1,6);
  const sun=circ(540,g,190,PI,2*PI,30);
  if(LT>.5){x.save();x.globalAlpha*=cl((LT-.5)/2)*.9;x.fillStyle='#f9e6b4';x.beginPath();sun.forEach((p,i)=>{if(i)x.lineTo(p[0],p[1]);else x.moveTo(p[0],p[1])});x.fill();x.restore()}
  E([sun,circ(540,g,130,PI,2*PI,24),circ(540,g,75,PI,2*PI,20)],.5,2.5,5,5);
  const sp=[];for(let i=0;i<11;i++){const px=80+i*90,tl=(R(i)-.5)*30,top=g-70-R(i+9)*30;sp.push([[px,g],[px+tl,top]]);sp.push([[px+tl,top],[px+tl+26,top+12],[px+tl,top+24]])}
- E(sp,1.5,3,20,4);E(fig(150+LT*48,1290,1.7,LT,{walk:1,bow:1}),1,1,40,6)};
+ E(sp,1.5,3,20,4);
+ for(let i=0;i<3;i++)E(wheel(180+i*330,g+90,36,i),2+i*.4,1.2,25+i*5,4); // broken wheels on the field
+ const px=60+LT*48;E(chariot(px,1290,.8,LT*5,LT),1,1,40,6);E(fig(px,1290-96,.75,LT,{bow:1,crown:1}),1.5,1,60,5)};
+// 2: the Pandava camp, brothers silent; the ratha arrives
 const S2=()=>{E([[[40,1150],[1040,1150]]],0,1,1,6);[190,540,890].forEach((p,i)=>E(tent(p),.3+i*.5,1.8,10+i*30,6));
- [360,540,720].forEach((p,i)=>E(fig(p,1330,1.3,LT,{sit:1,turn:-34+i*10,low:14}),3+i*.6,1.2,70+i*9,5));
- E(fig(80+LT*16,1520,1.7,LT,{walk:1,bow:1}),.5,1,90,6)};
+ [360,540,720].forEach((p,i)=>E(fig(p,1330,1.3,LT,{sit:1,turn:-34+i*10,low:14,crown:i!=1,mace:i==1}),3+i*.6,1.2,70+i*9,5));
+ const px=40+LT*30;E(chariot(px,1600,.55,LT*3,LT),.5,1,90,5);E(fig(px,1600-66,.5,LT,{bow:1,crown:1}),1,1,95,4)};
+// 3: Arjun asks; the conch lies silent; "?"
 const S3=()=>{const g=1300;E([[[40,g],[1040,g]]],0,1,1,6);E(tent(190).map(l=>l.map(p=>[p[0],p[1]+150])),.3,2,5,6);
  for(let i=0;i<13;i++)E([[[340+i*30,g-12],[340+i*30+16,g-12]]],1+i*.22,.2,30+i,5);
- E(fig(800,g,2,LT,{turn:-14}),.4,1.2,70,6);
+ E(conch(230,g+90,1),3,1.5,50,5);
+ E(fig(800,g,2,LT,{turn:-14,crown:1,bow:1}),.4,1.2,70,6);
  if(LT>4){x.save();x.globalAlpha*=cl((LT-4)/1)*(.75+.25*Math.sin(LT*3));x.fillStyle=INK;x.font='600 380px Caveat,"Segoe Script",cursive';x.textAlign='center';x.fillText('?',540,760);x.restore()}};
-const S4=()=>{const pts=[];for(let i=0;i<=220;i++){const a=i*.22,r=8+i*1.75;pts.push([540+Math.cos(a)*r,860+Math.sin(a)*r])}
- E([pts],0,6,3,6);E(fig(540,905,.55,LT,{}),6,1,40,5);E(fig(540,1500,1.3,LT,{turn:-6,low:10}),8,1.5,60,6)};
+// 4: the Chakravyuha, rings of soldiers closing in; Abhimanyu alone with a chariot wheel
+const S4=()=>{const cx=540,cy=860;
+ E([150,260,370,480].map((r,i)=>circ(cx,cy,r,.2*i,2*PI+.2*i-.45,50)),0,5,3,6);
+ [150,260,370,480].forEach((r,i)=>{const n=9+i*6,p=cl((LT-1-i*1.2)/1.5);for(let k=0;k<n;k++){const a=2*PI*k/n+LT*.12*(i%2?1:-1),sx=cx+Math.cos(a)*r,sy=cy+Math.sin(a)*r;stroke([[sx,sy],[sx,sy-34]],p,k*7+i*50,4);stroke(circ(sx,sy-44,8,0,2*PI,8),p,k*5+i*60,4)}});
+ E(fig(cx,cy+45,.55,LT,{crown:1,bow:1}),5,1,40,5);E(wheel(cx,cy-140,46,LT*2),6.5,1.2,45,5);
+ E(fig(540,1560,1.2,LT,{turn:-6,low:10,crown:1}),8,1.5,60,6)};
+// 5: dusk; the quiet spreads from one point; broken wheel, lone banner, stars
 const S5=()=>{const cx=540,cy=880;for(let k=0;k<4;k++){const r=70+((LT*55+k*95)%380),a=cl(1-LT/5.5)*(1-r/460);if(a>0){x.save();x.globalAlpha*=a;stroke(circ(cx,cy,r,0,2*PI,40),1,k*11,5);x.restore()}}
- E([circ(cx,cy,14,0,2*PI,10)],0,.5,70,6);E([[[60,cy],[1020,cy]]],5,1.8,80,5)};
-const S6=()=>{E([rect(450,220,180,330),circ(540,515,13,0,2*PI,10),[[480,260],[600,260]]],0,2.5,1,6);
- E([rect(420,690,240,400),circ(625,900,12,0,2*PI,10),[[430,1100],[650,1100]]],4,3,9,6);
- E([[[460,1480],[460,1260],[520,1260]],[[460,1480],[660,1480]],[[480,1480],[480,1590]],[[640,1480],[640,1590]]],8,3,17,6)};
-const S7=()=>{const g=1150;E([[[40,g],[1040,g]]],0,1,1,6);const bx=120+cl(LT/6)*600,fa=1-cl((LT-4.6)/1.6);
+ E([circ(cx,cy,14,0,2*PI,10)],0,.5,70,6);E([[[60,cy],[1020,cy]]],5,1.8,80,5);
+ E(wheel(420,1330,130,.4),1.5,3,90,6);E(flag(850,1450,300,LT*.6),3,2,100,6);E([[[40,1450],[1040,1450]]],1,2,110,5);
+ for(let i=0;i<14;i++){const sx=60+R(i)*960,sy=120+R(i+3)*560;E([[[sx-9,sy],[sx+9,sy]],[[sx,sy-9],[sx,sy+9]]],1+i*.3,.4,120+i,3)}};
+// 6: how grief arrives: a bell that does not ring, an open tent door, an empty asana
+const S6=()=>{E([[[300,200],[780,200]],[[540,200],[540,300]],[[460,480],[470,390],[540,320],[610,390],[620,480],[460,480]],circ(540,500,15,0,2*PI,10)],0,2.5,1,6);
+ E([[[330,1090],[540,700],[750,1090],[330,1090]],[[480,1090],[540,900],[600,1090]],[[540,900],[500,820]],[[540,900],[580,820]],[[330,1100],[750,1100]]].concat(flag(540,700,90,LT)),4,3,9,6);
+ E([ell(540,1450,110,22),[[430,1450],[430,1590]],[[650,1450],[650,1590]],[[470,1472],[470,1560]],[[610,1472],[610,1560]]],8,3,17,6)};
+// 7: young Abhimanyu runs out to meet his father every evening, then fades
+const S7=()=>{const g=1150;E([[[40,g],[1040,g]]],0,1,1,6);E(flag(90,g,300,LT).concat(flag(990,g,300,LT+1)),0,1.2,5,5);const bx=120+cl(LT/6)*600,fa=1-cl((LT-4.6)/1.6);
  for(let i=0;i<10;i++){const px=120+i*60;if(px<bx-20)stroke(circ(px,g+30,6,0,2*PI,8),1,30+i,4)}
- if(fa>0){x.save();x.globalAlpha*=fa;E(fig(bx,g,1.1,LT,{walk:1,run:1}),0,.3,50,5);x.restore()}
- E(fig(860,g,1.7,LT,{arms:1}),.5,1.5,60,6)};
+ if(fa>0){x.save();x.globalAlpha*=fa;E(fig(bx,g,1.1,LT,{walk:1,run:1,crown:1}),0,.3,50,5);x.restore()}
+ E(fig(860,g,1.7,LT,{arms:1,crown:1}),.5,1.5,60,6)};
+// 8: the ordinary evening: diyas, a shared meal, family together
 const S8=()=>{const gl=x.createRadialGradient(540,900,40,540,900,700);gl.addColorStop(0,'rgba(255,190,100,.38)');gl.addColorStop(1,'rgba(255,190,100,0)');x.fillStyle=gl;x.fillRect(0,200,W,1400);
- E([[[430,430],[430,560],[460,620],[600,620],[630,560],[630,430],[430,430]],circ(650,500,45,-1.5,1.5,12),[[400,640],[660,640]]],0,2.5,1,6);
- E([0,1,2].map(i=>{const p=[];for(let k=0;k<=10;k++)p.push([500+i*45+Math.sin(k*.6+LT*2+i)*10,410-k*13]);return p}),1,2,20,5);
- E([[[180,1230],[900,1230]],[[240,1230],[240,1400]],[[840,1230],[840,1400]],ell(340,1220,60,10),ell(540,1220,60,10),ell(740,1220,60,10)],3,2.5,30,6);
+ E(diya(540,560,4,LT),0,2.5,1,6);
+ E([[[180,1230],[900,1230]],[[240,1230],[240,1400]],[[840,1230],[840,1400]],ell(340,1215,60,12),ell(540,1215,60,12),ell(740,1215,60,12)],3,2.5,30,6);
+ [250,430,650,830].forEach((p,i)=>E(diya(p,1205,.6,LT+i),3.5+i*.3,1,80+i*9,4));
  [340,540,740].forEach((p,i)=>E([circ(p,1085,38,0,2*PI,18),[[p-70,1150],[p-60,1160],[p-30,1135],[p+30,1135],[p+60,1160],[p+70,1150]]],4+i*.5,1.2,60+i*9,5))};
 const SC=[[0,9,S1],[9,19,S2],[19,29,S3],[29,41,S4],[41,48,S5],[48,60,S6],[60,70,S7],[70,77,S8]];
 const CAP=[[0,5,"The worst moment of Arjun’s life wasn’t a battle."],[5,9,"It was walking back into his own camp."],
