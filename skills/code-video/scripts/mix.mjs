@@ -1,17 +1,23 @@
 #!/usr/bin/env node
-// Builds the reel's soundtrack (mix.wav): voice-over + background music (ducked under the voice) + sound effects.
+// Builds the reel's soundtrack (mix.wav): voice-over + background music + sound effects.
 // Run it inside the reel folder: node <skill>/scripts/mix.mjs [mix.wav]
 // Sources, all optional:
 //   voice.wav + timing.json   from tts.mjs
-//   audio.json                {"bgm":"bgm/epic/dark","bgmVolume":0.15,"voiceVolume":1,
-//                              "sfx":[{"line":0,"offset":0,"sound":"sfx/whoosh/whoosh-01","volume":0.8},{"at":12.5,"sound":"impact","dur":3}]}
+//   audio.json                {"bgm":"bgm/epic/dark","bgmVolume":0.1,"voiceVolume":1,
+//                              "sfx":[{"line":0,"offset":0,"sound":"sfx/whoosh/whoosh-01","volume":0.4},{"at":12.5,"sound":"impact","dur":3}]}
 //   music.wav|mp3             a plain background track in the folder (used under voice/sfx)
 // A cue is placed at `at` seconds, or at the start of caption line `line` plus `offset`, so effects follow the voice.
 // `sound` is a path under the sounds/ library (extension optional). A folder, a bare file name or a keyword also works:
 // the file is then picked from the matches (always the same one for the same reel). `dur` caps a long effect (default 6 s).
 //
+// THE VOICE-OVER ALWAYS STAYS ON TOP. When there is a voice, every effect and music track is measured and limited relative to the voice:
+// an effect's loudest point stays 9 dB below the voice's loudest point, music's average stays 14 dB below the voice's average, and no
+// effect goes above volume 0.5 or music above 0.2, whatever the file's own loudness or the volume written in audio.json (lower values are kept).
+// So nothing needs ducking: the music keeps a steady low level (add "duck": true for the old duck-under-the-voice behaviour).
+// Tune with "sfxBelowDb", "bgmBelowDb", "sfxMax", "bgmMax" in audio.json. Default music volume: 0.1 with a voice, 0.15 without.
+//
 // MULTIPLE MUSIC TRACKS: `bgm` can also be a list of sections, crossfaded into each other:
-//   "bgm":[{"sound":"bgm/calm-track","from":0,"to":30},{"mood":"epic","fromLine":12,"toLine":20,"volume":0.18},{"mood":"hopeful","fromLine":21}]
+//   "bgm":[{"sound":"bgm/calm-track","from":0,"to":30},{"mood":"epic","fromLine":12,"toLine":20,"volume":0.12},{"mood":"hopeful","fromLine":21}]
 //   a section has `sound` (path/folder/keyword) or `mood` (calm hopeful epic tense dark sad energetic mysterious warm playful: a track of that
 //   mood is picked from sounds/library.json); `from`/`to` in seconds or `fromLine`/`toLine` (caption lines); missing times follow the neighbours.
 //
@@ -40,6 +46,15 @@ const voice = fs.existsSync('voice.wav') ? 'voice.wav' : null;
 const total = +(timing?.total ?? cfg.duration ?? 8);
 const reel = path.basename(ROOT);
 const warn = m => console.warn('[mix] ' + m);
+const BGM_DEF = voice ? 0.1 : 0.15;   // default music volume
+const lin = db => Math.pow(10, db / 20);
+
+// loudest point and average level of a file (first `secs` seconds), in dB, or null
+function measure(file, secs) {
+  const r = spawnSync('ffmpeg', ['-v', 'info', '-t', String(secs), '-i', file, '-af', 'volumedetect', '-f', 'null', '-'], { encoding: 'utf8' });
+  const s = r.stderr || '', m = /mean_volume:\s*(-?[\d.]+) dB/.exec(s), x = /max_volume:\s*(-?[\d.]+) dB/.exec(s);
+  return m && x ? { mean: +m[1], max: +x[1] } : null;
+}
 
 // ---- sound library ----
 const EXT = /\.(wav|mp3|ogg|oga|flac|m4a|aac|aif|aiff|opus)$/i;
@@ -130,7 +145,8 @@ if (autoOn && lib.length) {
 
 // ---- cues ----
 const cues = [];
-const allSfx = [...(au.sfx || []), ...(plan?.sfx || [])];
+// planned effects are kept a little softer than hand-written ones
+const allSfx = [...(au.sfx || []), ...(plan?.sfx || []).map(c => ({ ...c, volume: (c.volume ?? 0.3) * 0.75 }))];
 for (const [i, c] of allSfx.entries()) {
   let at = c.at;
   if (at == null && c.line != null) {
@@ -141,7 +157,7 @@ for (const [i, c] of allSfx.entries()) {
   if (at == null || at < 0 || at >= total) { warn(`sfx #${i}: time ${at} is outside the video`); continue; }
   const f = resolve(c.sound, `${reel}:${i}:${c.sound}`);
   if (!f) { warn(`sfx #${i}: sound "${c.sound}" not found`); continue; }
-  cues.push({ f, at, vol: c.volume ?? 0.8, cap: c.dur ?? 6 });
+  cues.push({ f, at, vol: c.volume ?? 0.4, cap: c.dur ?? 6 });
 }
 
 // ---- music sections ----
@@ -162,7 +178,7 @@ if (segIn.length) {
     if (!f) { warn(`bgm section #${k}: "${x.sound || x.mood}" not found`); continue; }
     const nextFrom = (() => { const n = segIn[k + 1]; return n ? (n.from ?? (n.fromLine != null && st?.[n.fromLine] != null ? st[n.fromLine] : null)) : total; })();
     items.push({
-      f, vol: x.volume ?? au.bgmVolume ?? 0.15,
+      f, vol: x.volume ?? au.bgmVolume ?? BGM_DEF,
       from: x.from ?? (x.fromLine != null && st?.[x.fromLine] != null ? st[x.fromLine] : null),
       to: x.to ?? (x.toLine != null ? lineEnd(x.toLine) : nextFrom),
     });
@@ -175,8 +191,27 @@ if (segIn.length) {
   bgmSegs = items.filter(s => s.to - s.from >= 2);
   if (bgmSegs.length) { bgmSegs[0].from = 0; bgmSegs[bgmSegs.length - 1].to = total; }
 }
-if (!bgmSegs.length && legacy && (voice || cues.length)) bgmSegs = [{ f: legacy, vol: au.bgmVolume ?? 0.15, from: 0, to: total }];
+if (!bgmSegs.length && legacy && (voice || cues.length)) bgmSegs = [{ f: legacy, vol: au.bgmVolume ?? BGM_DEF, from: 0, to: total }];
 if (!voice && !cues.length && !bgmSegs.length) { console.log('[mix] nothing to mix'); process.exit(0); }
+
+// ---- keep everything under the voice-over ----
+// Each effect and music track is measured and its volume limited relative to the voice, so a loud file can never cover the speech.
+if (voice) {
+  const vm = measure(voice, 900);
+  const SFX_BELOW = au.sfxBelowDb ?? 9, BGM_BELOW = au.bgmBelowDb ?? 14, SFX_MAX = au.sfxMax ?? 0.5, BGM_MAX = au.bgmMax ?? 0.2;
+  let cutS = 0, cutB = 0;
+  for (const c of cues) {
+    let cap = SFX_MAX; const m = measure(c.f, c.cap);
+    if (vm && m) cap = Math.min(cap, lin(vm.max - SFX_BELOW - m.max)); else if (!m) cap = Math.min(cap, 0.3);
+    if (c.vol > cap) { c.vol = cap; cutS++; }
+  }
+  for (const s of bgmSegs) {
+    let cap = BGM_MAX; const m = measure(s.f, 60);
+    if (vm && m) cap = Math.min(cap, lin(vm.mean - BGM_BELOW - m.mean)); else if (!m) cap = Math.min(cap, 0.1);
+    if (s.vol > cap) { s.vol = cap; cutB++; }
+  }
+  console.log(`[mix] voice level: ${vm ? `peak ${vm.max} dB, average ${vm.mean} dB` : 'not measured'}; effects <= ${SFX_BELOW} dB below the voice peak (${cutS} of ${cues.length} lowered), music <= ${BGM_BELOW} dB below the voice average (${cutB} of ${bgmSegs.length} lowered)`);
+}
 
 // ---- ffmpeg graph ----
 const T = total.toFixed(3), A = 'aresample=44100,aformat=sample_fmts=fltp:channel_layouts=stereo';
@@ -188,7 +223,7 @@ if (hasBgm && bgmSegs.length === 1 && bgmSegs[0].from <= 0.01 && bgmSegs[0].to >
   // one track for the whole video
   args.push('-stream_loop', '-1', '-i', bgmSegs[0].f);
   const fo = total > 2.5 ? `,afade=t=out:st=${(total - 1.5).toFixed(3)}:d=1.5` : '';
-  fl.push(`[${n++}:a]${A},atrim=0:${T},afade=t=in:d=0.6${fo},volume=${bgmSegs[0].vol}[b]`);
+  fl.push(`[${n++}:a]${A},atrim=0:${T},afade=t=in:d=0.6${fo},volume=${bgmSegs[0].vol.toFixed(4)}[b]`);
 } else if (hasBgm) {
   // several tracks, crossfaded into each other
   const XF = 1.5, last = bgmSegs.length - 1, tags = [];
@@ -198,21 +233,21 @@ if (hasBgm && bgmSegs.length === 1 && bgmSegs[0].from <= 0.01 && bgmSegs[0].to >
     const fou = k === last ? (total > 2.5 ? `,afade=t=out:st=${Math.max(0, len - 1.5).toFixed(3)}:d=1.5` : '') : `,afade=t=out:st=${Math.max(0, len - XF).toFixed(3)}:d=${XF}`;
     const ms = Math.round(st * 1000);
     args.push('-stream_loop', '-1', '-i', s.f);
-    fl.push(`[${n++}:a]${A},atrim=0:${len.toFixed(3)},asetpts=PTS-STARTPTS,${fin}${fou},volume=${s.vol},adelay=${ms}|${ms}[g${k}]`);
+    fl.push(`[${n++}:a]${A},atrim=0:${len.toFixed(3)},asetpts=PTS-STARTPTS,${fin}${fou},volume=${s.vol.toFixed(4)},adelay=${ms}|${ms}[g${k}]`);
     tags.push(`[g${k}]`);
   });
   fl.push(`${tags.join('')}amix=inputs=${tags.length}:normalize=0:duration=longest[b]`);
 }
-if (voice && hasBgm) {
-  // music ducks under the voice
+if (voice && hasBgm && au.duck === true) {
+  // optional: music ducks under the voice (off by default: levels are already kept under the voice)
   fl.push('[v]asplit=2[vm][vs]', '[b][vs]sidechaincompress=threshold=0.02:ratio=8:attack=15:release=400[bd]');
   mixIn.push('vm', 'bd');
-} else if (voice) mixIn.push('v');
+} else if (voice) { mixIn.push('v'); if (hasBgm) mixIn.push('b'); }
 else if (hasBgm) mixIn.push('b');
 cues.forEach((c, k) => {
   args.push('-i', c.f);
   const ms = Math.round(c.at * 1000);
-  fl.push(`[${n++}:a]${A},atrim=0:${(+c.cap).toFixed(3)},afade=t=out:st=${Math.max(0, c.cap - 0.15).toFixed(3)}:d=0.15,volume=${c.vol},adelay=${ms}|${ms}[s${k}]`);
+  fl.push(`[${n++}:a]${A},atrim=0:${(+c.cap).toFixed(3)},afade=t=out:st=${Math.max(0, c.cap - 0.15).toFixed(3)}:d=0.15,volume=${c.vol.toFixed(4)},adelay=${ms}|${ms}[s${k}]`);
   mixIn.push('s' + k);
 });
 fl.push(`${mixIn.map(l => `[${l}]`).join('')}amix=inputs=${mixIn.length}:normalize=0:duration=longest,alimiter=limit=0.95,apad=whole_dur=${T},atrim=0:${T}[o]`);
