@@ -1,0 +1,12 @@
+bgm/AstralTravelingToBudapest 56.3s ~140bpm
+bgm/Dome 170.8s ~140bpm
+bgm/Otto 113.2s ~140bpm
+bgm/Overkill 118.4s ~140bpm
+bgm/QWERTY 119.4s ~140bpm
+bgm/ShortPieces 70.4s ~140bpm
+bgm/ShortTerm 82.4s ~140bpm
+bgm/TemaSinNombreedit 153.8s ~136bpm
+bgm/TheTrip 102.1s ~123bpm
+bgm/Vakkk 147.4s ~133bpm
+bgm/YEAH 108.2s ~108bpm
+bgm/janeiro 145.4s ~144bpm

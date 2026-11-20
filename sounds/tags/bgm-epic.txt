@@ -1,0 +1,13 @@
+bgm/06-Dhalius-06-tremble 113.3s ~117bpm
+bgm/71.SoundSister 109.9s ~140bpm
+bgm/74.TenSummers 150.5s ~120bpm
+bgm/80.80MinutesAdd 157.7s ~92bpm
+bgm/BlackHawk 79.4s ~86bpm
+bgm/Eliminate_your_senses 58.9s ~140bpm
+bgm/FormulaFantasy 97.5s ~136bpm
+bgm/HighImpact 132.3s ~92bpm
+bgm/JazzyTune 78.4s ~92bpm
+bgm/Joust 77.2s ~140bpm
+bgm/StellarAndromeda 77.3s ~99bpm
+bgm/UFO 80.6s ~120bpm
+bgm/Ways 180.1s ~140bpm

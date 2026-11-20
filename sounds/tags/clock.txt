@@ -1,0 +1,4 @@
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/MIX/CLOCK TENSION (7) 8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/memes/Cuckoo Clock (3 times) 2.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/u_mx4xkr2bzy-slow-cinematic-clock-ticking-tension-323080 8.1s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/mix/dragon-studio-clock-ticking-down-376897 9s

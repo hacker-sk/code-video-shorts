@@ -1,0 +1,5 @@
+bgm/65.Paterson 93.5s ~136bpm
+bgm/Against 137.8s ~76bpm
+bgm/CHILDSONG 129.3s ~83bpm
+bgm/Lust 126.9s ~76bpm
+bgm/WorldSong 87s ~74bpm

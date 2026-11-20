@@ -1,0 +1,14 @@
+bgm/Against 137.8s ~76bpm
+bgm/AutoMeditate 140.1s ~81bpm
+bgm/Da 118.7s ~136bpm
+bgm/DancingInTheRainDancingBeetwenTheStairs 122.5s ~99bpm
+bgm/FreeLife 72.9s ~92bpm
+bgm/LANDING 57.9s ~133bpm
+bgm/Nitro 81.8s ~103bpm
+bgm/QCROM 81.6s ~140bpm
+bgm/RestInPeace 67.7s ~112bpm
+bgm/RuinsOfMyHeart 67.5s ~129bpm
+bgm/Ta 79.5s ~133bpm
+bgm/TerceraGuerraMundial 95.8s ~86bpm
+bgm/bright 80.3s ~81bpm
+bgm/ghost 198.1s ~81bpm

@@ -1,0 +1,12 @@
+bgm/BlankEye 123.5s ~74bpm
+bgm/CHILDSONG 129.3s ~83bpm
+bgm/Eak 128.6s ~133bpm
+bgm/LaRecompensa 121.1s ~81bpm
+bgm/LoudNoises 90.6s ~74bpm
+bgm/Ona 60.7s ~81bpm
+bgm/PiecesOfTheRainbow 112.3s ~136bpm
+bgm/RestInPeace 67.7s ~112bpm
+bgm/Tahj 90.9s ~129bpm
+bgm/Tajs 62.3s ~86bpm
+bgm/WorldSong 87s ~74bpm
+bgm/dessekk 138s ~136bpm

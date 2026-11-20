@@ -1,0 +1,19 @@
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/MIX/CLOCK TENSION (7) 8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/MIX/DEEP DRONE (32) 30s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/MIX/ETHERAL DRONE (43) 19.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/MIX/PIANO TENSION (1) 4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/alesiadavina-horror-sound-lurking-horror-monster-189948 20.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/bryansantosbreton-critical-tension-cinematic-braam-impact-184273 6.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/freesound_community-tension-build-6035 15.8s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/gd_salman-tension-stinger-ambience-355381 7.9s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/jusatti890-scream-horror-sfx-490908 18.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/jusatti890-scream-horror-sfx-490909 30s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/jusatti890-scream-horror-sfx-490916 30s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/preshkeyzmusic-tension-effects-297613 33s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/sounds_ykt-time-freeze-tension-327055 3.5s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/the-vampires-monster-horror-orchestra-warning-338415 4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/thefealdoproject-tension-booster-01-250483 15.3s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/u_mx4xkr2bzy-slow-cinematic-clock-ticking-tension-323080 8.1s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/universfield-creepy-tension-background-30-352872 30.1s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/universfield-scary-string-tension-454849 3.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/horror & tension/universfield-tense-paranormal-horror-15s-498138 15.1s

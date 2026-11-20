@@ -1,0 +1,9 @@
+bgm/77.MantramDog 100.4s ~140bpm
+bgm/DependingOnWhatSideYouAre 64s ~140bpm
+bgm/FormulaFantasy 97.5s ~136bpm
+bgm/Otto 113.2s ~140bpm
+bgm/Pittsburgh 120.2s ~129bpm
+bgm/Sloth 70.6s ~144bpm
+bgm/WaveBackTheEvening 96.7s ~140bpm
+bgm/YEAH 108.2s ~108bpm
+bgm/thumb 117.4s ~136bpm

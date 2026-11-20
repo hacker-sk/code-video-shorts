@@ -2,8 +2,9 @@
 
 Generated automatically. 1036 sounds in 56 folders.
 
-Use a sound in a reel by writing its path (from an index file, extension optional) in `reels/<name>/audio.json`.
+Use a sound in a reel by writing its path (from an index file, extension optional) in `reels/<n>/audio.json`.
 Open only the index file of the folder you need, or search: `search_code` for a keyword with `path:sounds/index`.
+Browse by kind instead: `LIBRARY.md` (tags and music moods) and `tags/<tag>.txt`. Reels without an audio.json pick sounds automatically.
 
 | Folder | Sounds | Index file | Examples |
 |---|---|---|---|

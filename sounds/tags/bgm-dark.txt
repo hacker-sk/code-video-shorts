@@ -1,0 +1,13 @@
+bgm/64.NonePublicStop 113.2s ~96bpm
+bgm/65.Paterson 93.5s ~136bpm
+bgm/Destroy 164.8s ~81bpm
+bgm/JENNY 59.6s ~129bpm
+bgm/Lotus 82.5s ~126bpm
+bgm/Lust 126.9s ~76bpm
+bgm/MatrixTypeTestSylenth1 56.5s ~117bpm
+bgm/Nitro 81.8s ~103bpm
+bgm/Senegal 176.1s ~89bpm
+bgm/Shark 114.7s ~89bpm
+bgm/SunLifeMoonFriend 131.7s ~81bpm
+bgm/Tahj 90.9s ~129bpm
+bgm/Unbeaten 110.8s ~89bpm

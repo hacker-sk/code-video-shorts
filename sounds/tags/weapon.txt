@@ -1,0 +1,64 @@
+sfx/1000+UR.FASTEDITOR SFX/230 mixed sound effcts/nuke-bomb 5.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Machineguns/HK21 2.3s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Machineguns/RPK 1.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Machineguns/Stoner63 1.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Machineguns/weap_30cal_cooldown_1 1.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Machineguns/weap_30cal_loop_1 0.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Pistols/CZ75 1.4s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Pistols/Desert Eagle Shot 0.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Pistols/Gun-G18-SingleShot 1.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Pistols/M1911 1.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Pistols/Python 1.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Pistols/weap_deserteagle_slmn_2 2.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/AK47/AK47 Assault Rifle-SoundBible.com-1510616487 2.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/AK47/AK47 1.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/AK47/Gun-AK47-SingleShot 2.4s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/AK47/ak47-1 0.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/AUG/AUG 1.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/AUG/aug-1 0.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/Famas/FAMAS 2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/Famas/famas-1 2.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/M14/M14 1.4s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/M16/Gun-M16A4-Burst 1.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/M16/M16 1.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/P90/p90-1 0.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rifles/P90/weap_p90_slmn_1 1.3s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rocket Launchers/China Lake 5.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rocket Launchers/LAW 3.2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Rocket Launchers/RPG2 2.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/SMG/Ingram Shot 0.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/SMG/MAC11 1.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/SMG/MP5K 1.4s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/SMG/PM63 1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/SMG/mac10-1 1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/SMG/weap_skorpion_slmn_1bx 0.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Shotguns/Gun-SPAS12-SingleShot 1.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Shotguns/Olympia 1.4s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Shotguns/SPAS12 1.5s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Shotguns/Stakeout 1.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Shotguns/shotgun - Part_1 0.6s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Shotguns/shotgun 1.1s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Snipers/Dragunov 1.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Snipers/L95A1 2s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Snipers/PSG1 1.8s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Snipers/SteyrSSG Shot 1.7s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Snipers/WA2000 1.9s
+sfx/1000+UR.FASTEDITOR SFX/336 SFX/GUN SFX/Snipers/weap_50cal_temp_v2 2.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/9MM Luger p08 semi automatic single shot pistol_BLASTWAVEFX_09388 1.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/9MM glock slide cock foley movement pistol_BLASTWAVEFX_09334 0.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Baseball bat wood swing whoosh_BLASTWAVEFX_29344 0.3s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Basketball net swoosh_BLASTWAVEFX_29589 0.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Flash digital tune whoosh_BLASTWAVEFX_20045 0.6s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Foley_Bullet_243 Rifle_Brass Shell_Light Roll Across Concrete_Left To Right_Metallic Ring_HutchSFX 2.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Rope whoosh spin twirl reel_BLASTWAVEFX_23019 3.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Sound design shimmer accent whoosh fly by_BLASTWAVEFX_18611 4.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Sound design sweeper shimmer sparkle airy_BLASTWAVEFX_30127 4.1s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Sound design sweeper vocal PAd_BLASTWAVEFX_08852 8.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Sweep tape rewind rear to front to rear_BLASTWAVEFX_19204 5.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Whoosh delay sparkle_BLASTWAVEFX_18828 3.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Whoosh low slow suspense_BLASTWAVEFX_09971 6.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Whoosh mystery dark metallic_BLASTWAVEFX_16682 4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Whoosh robotic high fast_BLASTWAVEFX_31991 1.7s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Whoosh small star fly by_BLASTWAVEFX_18872 3.4s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/Whoosh swell crystal flange_BLASTWAVEFX_09934 5.2s
+sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Transition Sound Effects/gun 3.8s
