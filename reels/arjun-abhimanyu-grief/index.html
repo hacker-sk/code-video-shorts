@@ -5,7 +5,8 @@
 <style>html,body{margin:0;background:#000;height:100%}canvas{display:block;width:100vw;height:100vh}</style></head>
 <body><canvas id="c" width="1080" height="1920"></canvas>
 <script>
-// Hand-drawn style, 1080x1920, deterministic window.render(t). Timeline = 77s: edit DUR and CAP/SC times to match your Gemini voice-over.
+// Hand-drawn style, 1080x1920, deterministic window.render(t). Nominal timeline = 77s (scenes + captions are authored on it).
+// Voice-driven: TXT = caption lines (tts.mjs speaks them); window.__TIMING (seconds per line, from timing.json) warps the nominal timeline to the voice.
 const W=1080,H=1920,DUR=77,c=document.getElementById('c'),x=c.getContext('2d');
 const PI=Math.PI,cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),R=s=>{s=Math.sin(s*127.1+311.7)*43758.5453;return s-Math.floor(s)};
 const mix=(a,b,k)=>{const p=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));const A=p(a),B=p(b);return 'rgb('+A.map((v,i)=>Math.round(v+(B[i]-v)*k)).join(',')+')'};
@@ -66,15 +67,25 @@ const CAP=[[0,5,"The worst moment of Arjun’s life wasn’t a battle."],[5,9,"I
 [54,60,"You don’t notice the love while it’s happening, because it’s so ordinary."],[60,64,"You notice when it stops."],
 [64,70,"Abhimanyu running out every evening was the most normal thing in Arjun’s life, until it was the only thing he wanted back."],
 [70,73.5,"So the next time you’re sipping coffee, or having an ordinary dinner with your parents, be grateful for it."],[73.5,77,"These are the moments you will cherish for the rest of your lives."]];
-function caption(t){const k=CAP.find(a=>t>=a[0]&&t<a[1]);if(!k)return;x.save();x.globalAlpha=cl(Math.min((t-k[0])/.4,(k[1]-t)/.4));x.fillStyle=INK;
+
+// voice-over lines (tts.mjs reads TXT from the page)
+const TXT=CAP.map(a=>a[2]);
+// real start time of each line: LEAD + running sum of the voice durations (fallback: the nominal caption lengths)
+const LEAD=.5,TIM=Array.isArray(window.__TIMING)&&window.__TIMING.length===CAP.length?window.__TIMING:CAP.map(a=>a[1]-a[0]);
+const RS=[LEAD];TIM.forEach(d=>RS.push(RS[RS.length-1]+d));
+const NS=CAP.map(a=>a[0]).concat(DUR),REAL=RS[RS.length-1];
+// real time -> nominal time (piecewise linear per line), so scenes and drawing follow the voice
+const nom=r=>{if(r<=RS[0])return 0;if(r>=REAL)return DUR-.001;const i=RS.findIndex((v,k)=>r<RS[k+1]);return NS[i]+(r-RS[i])/(RS[i+1]-RS[i])*(NS[i+1]-NS[i])};
+function caption(r){const i=CAP.findIndex((a,k)=>r>=RS[k]&&r<RS[k+1]);if(i<0)return;const k=CAP[i];x.save();x.globalAlpha=cl(Math.min((r-RS[i])/.4,(RS[i+1]-r)/.4));x.fillStyle=INK;
  x.font='600 58px Caveat,"Segoe Script","Comic Sans MS",cursive';x.textAlign='center';let line='',y=1680;
  k[2].split(' ').forEach(w=>{const tt=line?line+' '+w:w;if(x.measureText(tt).width>900){x.fillText(line,540,y);y+=70;line=w}else line=tt});x.fillText(line,540,y);x.restore()}
 const GR=Array.from({length:300},(_,i)=>[R(i)*W,R(i+500)*H,R(i+900)*2+.6]);
-window.DURATION=DUR;
-window.render=function(t){t=cl(t,0,DUR);BOIL=Math.floor(t*6);const tk=cl((t-40.4)/1.2);INK=mix('#2a1913','#f3dcb4',tk);
+window.DURATION=REAL;
+window.render=function(r){r=cl(r,0,REAL);const t=nom(r);BOIL=Math.floor(r*6);const tk=cl((t-40.4)/1.2);INK=mix('#2a1913','#f3dcb4',tk);
  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,mix('#f4cf96','#241a30',tk));g.addColorStop(1,mix('#e59a58','#5a3446',tk));x.globalAlpha=1;x.fillStyle=g;x.fillRect(0,0,W,H);
  x.fillStyle=INK;GR.forEach(p=>{x.globalAlpha=.07;x.fillRect(p[0],p[1],p[2],p[2])});
  SC.forEach(([s,e,f])=>{if(t>=s&&t<e){LT=t-s;x.globalAlpha=cl(Math.min(s?(t-s)/.5:1,e<DUR?(e-t)/.5:1));x.save();f();x.restore()}});
- x.globalAlpha=1;caption(t)};
-window.render(0);
+ x.globalAlpha=1;caption(r)};
+// ready for tts.mjs / render.mjs once the handwriting font is loaded (or after 8s if it can't load)
+Promise.race([document.fonts.load('600 58px Caveat').catch(()=>{}),new Promise(r=>setTimeout(r,8000))]).then(()=>{window.render(0);window.__ready=true});
 </script></body></html>
