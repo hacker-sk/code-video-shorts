@@ -8,9 +8,12 @@
 //        optional: BUFFER_CHANNEL_ID (YouTube; else the first YouTube channel found), BUFFER_YOUTUBE_PRIVACY (public|unlisted|private, default public),
 //                  BUFFER_YOUTUBE_CATEGORY (YouTube category id, default 24 = Entertainment), BUFFER_DELAY_SECONDS (default 60),
 //                  BUFFER_INSTAGRAM_CHANNEL_ID (Instagram; else the first Instagram channel found), BUFFER_INSTAGRAM=off (skip Instagram),
+//                  BUFFER_THUMBNAIL_OFFSET_MS (video frame used as the thumbnail, in milliseconds, default 2000 = the frame at 2 seconds),
 //                  UGUU_UPLOAD_URL (default https://uguu.se/upload)
-// Optional reels/<name>/post.json: {"title": "...", "description": "...", "instagram": "..."}; otherwise the title comes from the folder name.
+// Optional reels/<name>/post.json: {"title": "...", "description": "...", "instagram": "...", "thumbnailOffset": 2000}; otherwise the title comes from the folder name.
 //   "instagram" is the Reels caption (falls back to description/title, without #Shorts).
+//   "thumbnailOffset" (ms) overrides BUFFER_THUMBNAIL_OFFSET_MS for this reel.
+// Thumbnail: Buffer only accepts a frame offset for Instagram (and TikTok/Pinterest), not for YouTube, so it is sent with the Instagram Reels post only.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -36,6 +39,9 @@ let text = post.description || title;
 if (!/#shorts/i.test(text)) text += '\n\n#Shorts';
 // Instagram caption (max 2200 chars), no #Shorts
 const igText = (post.instagram || post.description || title).slice(0, 2200);
+// thumbnail = the video frame at this many milliseconds (default 2000 = 2 seconds in)
+const thumbRaw = post.thumbnailOffset ?? process.env.BUFFER_THUMBNAIL_OFFSET_MS ?? 2000;
+const thumbMs = Number.isFinite(+thumbRaw) && +thumbRaw >= 0 ? Math.round(+thumbRaw) : 2000;
 
 // 1) host the video at a public URL
 const size = fs.statSync(file).size;
@@ -114,7 +120,8 @@ if (!channelId) { console.error('no YouTube channel connected in Buffer (or set 
 if (wantIG && !igChannelId) console.error('no Instagram channel connected in Buffer (or set BUFFER_INSTAGRAM_CHANNEL_ID): skipping Instagram');
 
 // 4) schedule a post `delay` seconds from now (computed after the upload, so it's always in the future)
-async function schedulePost(label, chId, caption, metadata) {
+// assetMeta (optional) goes inside the video asset, e.g. the thumbnail frame offset
+async function schedulePost(label, chId, caption, metadata, assetMeta = '') {
   try {
     const dueAt = new Date(Date.now() + delay * 1000).toISOString();
     const data = await gql(`mutation {
@@ -125,7 +132,7 @@ async function schedulePost(label, chId, caption, metadata) {
     mode: customScheduled
     dueAt: ${JSON.stringify(dueAt)}
     metadata: { ${metadata} }
-    assets: [ { video: { url: ${JSON.stringify(videoUrl)} } } ]
+    assets: [ { video: { url: ${JSON.stringify(videoUrl)}${assetMeta ? `, ${assetMeta}` : ''} } } ]
   }) {
     ... on PostActionSuccess { post { id } }
     ... on MutationError { message }
@@ -137,14 +144,16 @@ async function schedulePost(label, chId, caption, metadata) {
   } catch (e) { console.error(`${label} failed: ${e.message}`); failed = true; }
 }
 
-// YouTube Shorts
+// YouTube Shorts (Buffer cannot set a YouTube thumbnail frame, so no thumbnail offset here)
 if (channelId) {
   await schedulePost('YouTube', channelId, text,
     `youtube: { title: ${JSON.stringify(title)}, categoryId: ${JSON.stringify(category)}, privacy: ${privacy} }`);
 }
-// Instagram Reels (a separate post, so an Instagram problem never blocks YouTube)
+// Instagram Reels (a separate post, so an Instagram problem never blocks YouTube); thumbnail = frame at thumbMs (default 2 s)
 if (wantIG && igChannelId) {
+  console.log(`Instagram thumbnail frame: ${thumbMs} ms`);
   await schedulePost('Instagram Reels', igChannelId, igText,
-    'instagram: { type: reel, shouldShareToFeed: true }');
+    'instagram: { type: reel, shouldShareToFeed: true }',
+    `metadata: { thumbnailOffset: ${thumbMs} }`);
 }
 if (failed) process.exit(1);
