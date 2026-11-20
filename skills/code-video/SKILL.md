@@ -55,8 +55,12 @@ Setting up the project folder, which library for which look, springs and easing,
 Pushing `reels/<name>/index.html` (+ `video.json`, `audio.json`) runs `.github/workflows/make-reel.yml`, which adds the sound for you: voice-over (tts.mjs) → mix (mix.mjs) → render. What the reel has to provide:
 
 - **Voice-over** (when the `GEMINI_API_KEY` secret is set): keep the spoken lines in a top-level `const TXT=[...]`, one entry per caption, starting at 0.5 s (`let cs=.5`). Take each line's length from the voice: `d=(window.__TIMING&&window.__TIMING[i])||<your own estimate>`. The audio then decides the timing, so voice, captions and animation stay in sync.
-- **Sound library:** `sounds/` holds ~3000 sound effects and music tracks. Don't list folders. Read `sounds/CATALOG.md` (folders and counts), then only the `sounds/index/<folder>.txt` you need (`<path> <length>` per line), or search with `search_code` for a keyword with `path:sounds/index`.
-- **Cues:** write `reels/<name>/audio.json` next to `index.html`:
+- **Automatic sound is the default.** If the reel has no `audio.json` (or one with no `sfx` and no `bgm`, or with `"auto": true`), `mix.mjs` reads the script (`TXT`) and plans the sound itself (`plan.mjs`): each line is scored for mood, the story is cut into sections and **each section gets its own music track** of that mood (crossfaded, no track repeats), and effects are placed on story turns, numbers, shocks, questions (a riser into the answer), danger, money, fire/water/wind when mentioned, plus a hook at the start and a hit or bell at the end. Spaced out, never the same file twice, weapon sounds never. The plan shows in the render log as `[auto]` lines and is saved as `audio.plan.json`. So for a normal reel just write good `TXT` lines and skip `audio.json`.
+  - Options in `audio.json` (all optional): `"auto": false` (off), `"auto": {"bgm": false}` or `{"sfx": false}` (keep one half manual), `"mood": "epic"` or a list (nudge the music), `"density": "low" | "normal" | "high"` (how many effects), `"sfxVolume"`, `"bgmVolume"`.
+  - Wrong mood on a track or a sound you dislike: add it to `sounds/overrides.json` (see `sounds/README.md`) and run the Sound Catalog workflow.
+  - A reel that spells out `sfx` or `bgm` itself is left exactly as written.
+- **Sound library:** `sounds/` holds ~1000 sound effects and ~100 music tracks, all labelled. To choose by hand, don't list folders. Read `sounds/LIBRARY.md` (effect tags with counts, music moods, a table of every track with length, tempo and mood) or the short lists `sounds/tags/<tag>.txt` and `sounds/tags/bgm-<mood>.txt`; `sounds/CATALOG.md` and `sounds/index/<folder>.txt` list every sound's exact path (`<path> <length>` per line); `search_code` with `path:sounds/index` finds a keyword.
+- **Cues by hand:** write `reels/<name>/audio.json` next to `index.html`:
 
 ```json
 {
@@ -71,9 +75,10 @@ Pushing `reels/<name>/index.html` (+ `video.json`, `audio.json`) runs `.github/w
 ```
 
   - `line` + `offset` places an effect at the start of that caption line (plus offset seconds) so it follows the voice; `at` is absolute seconds. `dur` caps a long effect (default 6 s).
-  - `sound` is a path from an index file, extension optional. A folder, a bare file name or a keyword also works (a matching file is picked, always the same for this reel).
-  - Pick one background track that fits the mood; it ducks under the voice by itself. Use effects sparingly, on beats the viewer should feel (a reveal, a hit, a scene change), not on every line. Keep volumes low enough that the voice stays clear.
-  - A plain `music.wav`/`music.mp3` in the reel folder still works as background music.
+  - `sound` is a path from an index file, extension optional. A folder, a bare file name or a keyword also works (a matching file is picked, always the same for this reel). A tag name such as `riser` or `whoosh` works as a keyword too.
+  - **Several music tracks:** make `bgm` a list of sections, crossfaded: `"bgm": [{"mood":"calm","from":0,"to":30}, {"sound":"bgm/some-track","fromLine":12,"toLine":20,"volume":0.18}, {"mood":"hopeful","fromLine":21}]`. A section has `sound` (path, folder or keyword) or `mood` (calm, hopeful, epic, tense, dark, sad, energetic, mysterious, warm, playful); times in seconds (`from`/`to`) or caption lines (`fromLine`/`toLine`); a missing time follows the neighbour. Change music where the story's feeling changes, not on every line.
+  - Pick background music that fits the mood; it ducks under the voice by itself. Use effects sparingly, on beats the viewer should feel (a reveal, a hit, a scene change), not on every line. Keep volumes low enough that the voice stays clear.
+  - A plain `music.wav`/`music.mp3` in the reel folder still works as background music (automatic music is then not added).
 
 ## What earlier videos left behind
 
