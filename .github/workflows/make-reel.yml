@@ -24,7 +24,7 @@ name: Make Reel
 # Optional repo variables: BUFFER_CHANNEL_ID (YouTube), BUFFER_INSTAGRAM_CHANNEL_ID, BUFFER_INSTAGRAM (set to off to skip Instagram),
 # BUFFER_YOUTUBE_PRIVACY (public|unlisted|private), BUFFER_YOUTUBE_CATEGORY.
 #
-# Caches (so later jobs are faster): the unpacked sound library (re-downloaded only when the release zips change),
+# Caches (so later jobs are faster): FFmpeg (static binary), the unpacked sound library (re-downloaded only when the release zips change),
 # the Playwright browser + npm downloads, and the generated voice-over clips (a line that didn't change is not re-generated).
 # The voice-over clips are saved even when the job fails, so a retry continues where it stopped.
 on:
@@ -145,10 +145,32 @@ jobs:
             echo "{\"width\":${W:-1080},\"height\":${H:-1920},\"fps\":${FPS:-30},\"duration\":${DUR:-10}}" > "reels/$n/video.json"
           fi
 
-      - name: Install FFmpeg
+      # ---- FFmpeg: static binary kept in the cache, so it is not installed again on every run ----
+      # Bump the "v1" in the key to force a fresh download.
+      - name: Restore FFmpeg cache
+        id: ffcache
+        uses: actions/cache@v4
+        with:
+          path: ~/ffmpeg-bin
+          key: ffmpeg-static-${{ runner.os }}-v1
+
+      - name: Install FFmpeg (only when not cached)
+        if: ${{ steps.ffcache.outputs.cache-hit != 'true' }}
         run: |
-          # no apt-get update first (slow); fall back to it only if the install fails
-          sudo apt-get install -y --no-install-recommends ffmpeg || { sudo apt-get update -y && sudo apt-get install -y --no-install-recommends ffmpeg; }
+          mkdir -p "$HOME/ffmpeg-bin"
+          if curl -fsSL --retry 3 https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o "$RUNNER_TEMP/ff.tar.xz"; then
+            tar -xJf "$RUNNER_TEMP/ff.tar.xz" -C "$HOME/ffmpeg-bin" --strip-components=1 --wildcards '*/ffmpeg' '*/ffprobe'
+            rm -f "$RUNNER_TEMP/ff.tar.xz"
+          else
+            # download host down: fall back to apt and keep the binaries for the cache
+            sudo apt-get install -y --no-install-recommends ffmpeg || { sudo apt-get update -y && sudo apt-get install -y --no-install-recommends ffmpeg; }
+            cp "$(command -v ffmpeg)" "$(command -v ffprobe)" "$HOME/ffmpeg-bin/"
+          fi
+
+      - name: Add FFmpeg to PATH
+        run: |
+          echo "$HOME/ffmpeg-bin" >> "$GITHUB_PATH"
+          "$HOME/ffmpeg-bin/ffmpeg" -version | head -1
 
       # ---- sound library: cached, re-downloaded only when the release zips change ----
       - name: Check sound library version
