@@ -18,11 +18,13 @@ name: Make Reel
 # (see skills/code-video/SKILL.md). The library comes from sounds/ in the repo and from any .zip attached
 # to the GitHub Release tagged "sounds" (use that for files over 100 MB); zips are unpacked before rendering.
 #
-# YouTube + Instagram: if the repo secret BUFFER_API_KEY is set, each rendered reel is uploaded to a temporary public host
-# (Uguu, free; Cloudinary as a fallback if the secret CLOUDINARY_URL is set) and scheduled via Buffer 1 minute later
-# on your YouTube channel (Shorts) and your Instagram account (Reels).
+# Publishing (skills/code-video/scripts/publish.mjs) depends on the video:
+#   REEL (vertical and at most 3 minutes): YouTube Shorts + Instagram Reels, both through Buffer, scheduled 1 minute later
+#     (needs the secret BUFFER_API_KEY; the video is put on a temporary public host first: Uguu, Cloudinary if CLOUDINARY_URL is set).
+#   LONG (landscape, or longer than 3 minutes): YouTube through the YouTube Data API v3 ONLY (secrets YT_CLIENT_ID, YT_CLIENT_SECRET,
+#     YT_REFRESH_TOKEN), never through Buffer; Instagram still through Buffer as before.
 # Optional repo variables: BUFFER_CHANNEL_ID (YouTube), BUFFER_INSTAGRAM_CHANNEL_ID, BUFFER_INSTAGRAM (set to off to skip Instagram),
-# BUFFER_YOUTUBE_PRIVACY (public|unlisted|private), BUFFER_YOUTUBE_CATEGORY.
+# BUFFER_YOUTUBE_PRIVACY (public|unlisted|private), YT_PRIVACY (privacy of API uploads, default = BUFFER_YOUTUBE_PRIVACY), BUFFER_YOUTUBE_CATEGORY.
 #
 # Caches (so later jobs are faster): FFmpeg (static binary), the unpacked sound library (re-downloaded only when the release zips change),
 # the Playwright browser + npm downloads, and the generated voice-over clips (a line that didn't change is not re-generated).
@@ -111,6 +113,7 @@ jobs:
         reel: ${{ fromJson(needs.plan.outputs.reels) }}
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
@@ -298,11 +301,14 @@ jobs:
           path: reels/${{ matrix.reel }}/video.mp4
           if-no-files-found: error
 
-      - name: Publish to YouTube Shorts + Instagram Reels via Buffer
-        if: ${{ env.BUFFER_API_KEY != '' }}
+      - name: Publish (reels via Buffer, long/landscape YouTube via the YouTube API)
+        if: ${{ env.BUFFER_API_KEY != '' || env.YT_REFRESH_TOKEN != '' }}
         env:
           LIST: ${{ matrix.reel }}
           CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_PRIVACY: ${{ vars.YT_PRIVACY }}
           BUFFER_CHANNEL_ID: ${{ vars.BUFFER_CHANNEL_ID }}
           BUFFER_INSTAGRAM_CHANNEL_ID: ${{ vars.BUFFER_INSTAGRAM_CHANNEL_ID }}
           BUFFER_INSTAGRAM: ${{ vars.BUFFER_INSTAGRAM }}
