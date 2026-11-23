@@ -1,0 +1,158 @@
+<!doctype html><html><head><meta charset='utf-8'><style>html,body{margin:0;background:#000004;overflow:hidden}canvas{display:block}#vg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 48%,rgba(0,0,10,.7) 100%)}#fl{position:absolute;inset:0;pointer-events:none;background:#fff;opacity:0}#cap{position:absolute;left:60px;right:60px;top:1340px;text-align:center;font:800 76px/1.18 DejaVu Sans,Arial,sans-serif;color:#fff;text-shadow:0 4px 22px #000,0 0 8px #000}#cap b{color:#7fe0ff;font-weight:800}#hud{position:absolute;left:0;right:0;top:150px;display:flex;justify-content:center;font:700 34px DejaVu Sans,Arial,sans-serif}.chip{white-space:nowrap;padding:16px 28px;border-radius:24px;background:rgba(120,200,255,.12);color:#d8f2ff;border:3px solid rgba(140,220,255,.35);letter-spacing:1px}</style></head><body><canvas id='c' width='1080' height='1920'></canvas><div id='vg'></div><div id='fl'></div><div id='hud'><div class='chip' id='chip'></div></div><div id='cap'></div><script type='module'>
+import * as THREE from './node_modules/three/build/three.module.js';
+const TXT=[
+"This is a magnetar.",
+"The corpse of a massive star.",
+"Crushed to just twenty kilometers wide.",
+"Yet it holds more mass than our Sun.",
+"One teaspoon weighs billions of tons.",
+"But its real power is magnetism.",
+"Up to a quadrillion times stronger than Earth's.",
+"Come within a thousand kilometers,",
+"and its field tears your atoms into needles.",
+"Every few seconds, it spins,",
+"sweeping colossal beams like a cosmic lighthouse.",
+"Then, the crust cracks.",
+"A starquake.",
+"In 2004, one flare released in a tenth of a second",
+"the energy our Sun makes in a hundred thousand years.",
+"It disturbed Earth's atmosphere from fifty thousand light-years away.",
+"We know of only thirty in our galaxy.",
+"Nature's most extreme magnets.",
+"Follow for more cosmos."];
+let cs=.5;const C=TXT.map((tx,i)=>{const n=tx.split(' ').length,d=(window.__TIMING&&window.__TIMING[i])||.4+.3*n;const o={tx,n,d,s:cs,e:cs+d};cs+=d;return o});
+const SS=C.map(c=>c.s),E=cs,S=i=>SS[Math.min(i,SS.length-1)];
+const HU={2:'DIAMETER \u2248 20 KM',3:'MASS \u2248 1.4 \u00d7 SUN',4:'1 TEASPOON \u2248 BILLIONS OF TONS',6:'FIELD: UP TO 10\u00b9\u2075 GAUSS',8:'DANGER ZONE \u2248 1,000 KM',10:'SPIN: EVERY FEW SECONDS',13:'GIANT FLARE \u00b7 2004',14:'0.1 SEC \u2248 SUN \u00d7 100,000 YEARS',15:'50,000 LIGHT-YEARS AWAY',16:'ONLY ~30 KNOWN IN OUR GALAXY'};
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),rp=(a,b,t)=>cl((t-a)/(b-a)),sm=x=>x*x*(3-2*x);
+let sd=7;const rn=()=>{sd=(sd*1664525+1013904223)>>>0;return sd/4294967296};
+const r=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(1080,1920,false);r.setClearColor(0x000004);
+const sc=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(45,1080/1920,.1,1500);
+const ADD=THREE.AdditiveBlending;
+const NZ=`float h(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float vn(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z);}
+float fbm(vec3 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+7.1;a*=.5;}return s;}`;
+function gtex(){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');const g=x.createRadialGradient(128,128,0,128,128,128);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.15,'rgba(255,255,255,.55)');g.addColorStop(.4,'rgba(255,255,255,.13)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,256,256);return new THREE.CanvasTexture(c)}
+const GT=gtex();
+// ---------- nebula backdrop (baked once on CPU) ----------
+(function(){const W=1536,Hh=768,cv=document.createElement('canvas');cv.width=W;cv.height=Hh;const x=cv.getContext('2d'),im=x.createImageData(W,Hh);
+const H=(a,b,c)=>{const n=Math.sin(a*127.1+b*311.7+c*74.7)*43758.5453;return n-Math.floor(n)};
+const L=(a,b,t)=>a+(b-a)*t;
+const VN=(a,b,c)=>{const xi=Math.floor(a),yi=Math.floor(b),zi=Math.floor(c);let fx=a-xi,fy=b-yi,fz=c-zi;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);fz=fz*fz*(3-2*fz);
+return L(L(L(H(xi,yi,zi),H(xi+1,yi,zi),fx),L(H(xi,yi+1,zi),H(xi+1,yi+1,zi),fx),fy),L(L(H(xi,yi,zi+1),H(xi+1,yi,zi+1),fx),L(H(xi,yi+1,zi+1),H(xi+1,yi+1,zi+1),fx),fy),fz)};
+const FB=(a,b,c,o)=>{let s=0,k=.5;for(let i=0;i<o;i++){s+=k*VN(a,b,c);a=a*2.03+7.1;b=b*2.03+7.1;c=c*2.03+7.1;k*=.5}return s};
+for(let j=0;j<Hh;j++){const lat=(j/Hh-.5)*Math.PI;for(let i=0;i<W;i++){const lon=i/W*Math.PI*2,cx=Math.cos(lat)*Math.cos(lon),cy=Math.sin(lat),cz=Math.cos(lat)*Math.sin(lon);
+const n1=FB(cx*2.1,cy*2.1,cz*2.1,3),n2=FB(cx*4.6+n1*1.8,cy*4.6,cz*4.6+n1*1.8,3);
+const neb=Math.pow(Math.max(0,n1-.36)*2.3,1.5),cy2=Math.max(0,n2-.42)*1.6*neb;
+const by=cy*3.2+.35*Math.sin(cx*2.4+1),band=Math.exp(-by*by),du=FB(cx*9,cy*9,cz*9,2);
+let R=.004+neb*.30+cy2*.05+band*(.18+.5*du)*.34,G=.005+neb*.07+cy2*.28+band*(.16+.45*du)*.27,B=.02+neb*.42+cy2*.42+band*(.14+.4*du)*.24;
+const p=(j*W+i)*4;im.data[p]=cl(R*255,0,255);im.data[p+1]=cl(G*255,0,255);im.data[p+2]=cl(B*255,0,255);im.data[p+3]=255}}
+x.putImageData(im,0,0);const tx=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace;
+const m=new THREE.Mesh(new THREE.SphereGeometry(900,48,32),new THREE.MeshBasicMaterial({map:tx,side:THREE.BackSide,depthWrite:false}));m.renderOrder=-10;m.frustumCulled=false;sc.add(m)})();
+// ---------- stars + dust ----------
+const starGroup=new THREE.Group();sc.add(starGroup);const starMats=[];
+[[1800,1.8],[500,3.2],[70,6.5]].forEach(([N,sz])=>{const p=[],c=[];for(let i=0;i<N;i++){const u=rn()*2-1,a=rn()*6.2832,q=Math.sqrt(1-u*u),R=400+rn()*300;p.push(Math.cos(a)*q*R,u*R,Math.sin(a)*q*R);const k=rn(),col=k<.6?[1,1,1]:k<.85?[.65,.8,1]:[1,.85,.65];c.push(...col)}
+const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));
+const m=new THREE.PointsMaterial({size:sz,sizeAttenuation:false,map:GT,vertexColors:true,transparent:true,blending:ADD,depthWrite:false});starMats.push(m);const pt=new THREE.Points(g,m);pt.frustumCulled=false;starGroup.add(pt)});
+const dust=(()=>{const p=[];for(let i=0;i<700;i++)p.push((rn()-.5)*80,(rn()-.5)*60,(rn()-.5)*80);const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));const pt=new THREE.Points(g,new THREE.PointsMaterial({size:.22,map:GT,transparent:true,opacity:.45,blending:ADD,depthWrite:false,color:0x9fc4ff}));pt.frustumCulled=false;sc.add(pt);return pt})();
+// ---------- magnetar ----------
+const spin=new THREE.Group(),mag=new THREE.Group();sc.add(spin);spin.add(mag);mag.rotation.z=.55;
+const surfU={uT:{value:0},uCrack:{value:0},uFlash:{value:0}};
+const core=new THREE.Mesh(new THREE.SphereGeometry(1,96,64),new THREE.ShaderMaterial({uniforms:surfU,vertexShader:`varying vec3 vP,vNw,vV;void main(){vP=position;vNw=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(position,1.);vV=-mv.xyz;gl_Position=projectionMatrix*mv;}`,
+fragmentShader:`uniform float uT,uCrack,uFlash;varying vec3 vP,vNw,vV;${NZ}
+void main(){vec3 N=normalize(vNw),V=normalize(vV);float f=pow(1.-max(dot(N,V),0.),2.2);
+float n=fbm(vP*3.5+vec3(0.,uT*.15,0.));float n2=fbm(vP*9.+n*2.);
+vec3 c=mix(vec3(.02,.06,.25),vec3(.5,.78,1.),n*.9+n2*.3);
+float pole=smoothstep(.6,.98,abs(normalize(vP).y));c+=vec3(1.,.85,1.)*pole*(1.4+.4*sin(uT*6.));
+float rg=1.-abs(2.*fbm(vP*4.2+3.)-1.);float cr=smoothstep(.9,.985,rg)*uCrack;
+c+=vec3(1.,.5,.15)*cr*4.+vec3(1.,.9,.7)*cr*cr*2.;c+=f*vec3(.35,.8,1.)*1.8;c+=uFlash*vec3(1.,.95,.9);
+gl_FragColor=vec4(c,1.);}`}));mag.add(core);
+const mkSp=(col,sc0,op)=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GT,color:col,transparent:true,blending:ADD,depthWrite:false,opacity:op}));s.scale.setScalar(sc0);sc.add(s);return s};
+const gA=mkSp(0x58b4ff,6.5,.9),gB=mkSp(0x2a58ff,22,.4),gC=mkSp(0xffffff,2.8,1);
+// field lines + plasma particles
+const NL=72,NP=96,LL=[];for(let i=0;i<NL;i++)LL.push([1.5+Math.pow(rn(),1.5)*6.2,rn()*6.2832]);
+const fU={uT:{value:0},uReach:{value:0},uOp:{value:1},uBoost:{value:1}};
+{const pos=[],aL=[],aT=[],idx=[];LL.forEach(([L,ph],li)=>{const t0=Math.asin(Math.sqrt(1/L));for(let k=0;k<NP;k++){const u=k/(NP-1),th=t0+(Math.PI-2*t0)*u,s=Math.sin(th),rr=L*s*s;pos.push(rr*s*Math.cos(ph),rr*Math.cos(th),rr*s*Math.sin(ph));aL.push(L);aT.push(u);if(k<NP-1){const b=li*NP+k;idx.push(b,b+1)}}});
+const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('aL',new THREE.Float32BufferAttribute(aL,1));g.setAttribute('aT',new THREE.Float32BufferAttribute(aT,1));g.setIndex(idx);
+const m=new THREE.LineSegments(g,new THREE.ShaderMaterial({uniforms:fU,transparent:true,blending:ADD,depthWrite:false,vertexShader:`attribute float aL;attribute float aT;uniform float uReach;varying float vL,vT,vVis;void main(){vL=aL;vT=aT;vVis=1.-smoothstep(uReach-1.4,uReach-.4,aL);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+fragmentShader:`uniform float uT,uOp;varying float vL,vT,vVis;void main(){float p=pow(.5+.5*sin(vT*40.-uT*9.+vL*3.),6.);float a=vVis*uOp*(.16+.5*p);vec3 col=mix(vec3(.3,.9,1.),vec3(1.,.35,.9),smoothstep(1.5,7.,vL));gl_FragColor=vec4(col*1.3,a);}`}));m.frustumCulled=false;mag.add(m)}
+{const NPT=7000,pos=new Float32Array(NPT*3),aL=[],aPh=[],aOff=[],aSp=[],aSz=[];for(let i=0;i<NPT;i++){const l=LL[Math.floor(rn()*NL)];aL.push(l[0]);aPh.push(l[1]);aOff.push(rn());aSp.push(.1+rn()*.1);aSz.push(.05+rn()*.09)}
+const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));[['aL',aL],['aPh',aPh],['aOff',aOff],['aSp',aSp],['aSz',aSz]].forEach(([n,a])=>g.setAttribute(n,new THREE.Float32BufferAttribute(a,1)));
+const m=new THREE.Points(g,new THREE.ShaderMaterial({uniforms:fU,transparent:true,blending:ADD,depthWrite:false,vertexShader:`attribute float aL,aPh,aOff,aSp,aSz;uniform float uT,uReach,uBoost;varying float vA;varying vec3 vC;
+void main(){float t0=asin(sqrt(1./aL));float u=fract(aOff+uT*aSp*uBoost);float th=mix(t0,3.14159265-t0,u);float s=sin(th);float rr=aL*s*s;vec3 p=vec3(rr*s*cos(aPh),rr*cos(th),rr*s*sin(aPh));
+vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=min(aSz*2318./-mv.z,48.);
+float vis=1.-smoothstep(uReach-1.4,uReach-.4,aL);vA=vis*smoothstep(0.,.08,u)*smoothstep(1.,.92,u);vC=mix(vec3(.3,.9,1.),vec3(1.,.3,.9),smoothstep(1.5,7.,aL));}`,
+fragmentShader:`varying float vA;varying vec3 vC;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);gl_FragColor=vec4(vC*1.5,a*a*vA);}`}));m.frustumCulled=false;mag.add(m)}
+// beams
+const bU={uT:{value:0},uI:{value:0}};const bGeo=new THREE.CylinderGeometry(2.8,.3,16,48,1,true);bGeo.translate(0,9,0);
+const bMat=new THREE.ShaderMaterial({uniforms:bU,transparent:true,blending:ADD,depthWrite:false,side:THREE.DoubleSide,vertexShader:`varying vec2 vUv;varying vec3 vN,vV;void main(){vUv=uv;vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(position,1.);vV=-mv.xyz;gl_Position=projectionMatrix*mv;}`,
+fragmentShader:`uniform float uT,uI;varying vec2 vUv;varying vec3 vN,vV;void main(){float h=vUv.y;float e=pow(abs(dot(normalize(vN),normalize(vV))),1.2);float p=.65+.35*sin(h*26.-uT*14.);float a=pow(1.-h,1.3)*e*p*uI*.55;gl_FragColor=vec4(mix(vec3(.5,.9,1.),vec3(.9,.5,1.),h)*1.3,a);}`});
+const b1=new THREE.Mesh(bGeo,bMat),b2=new THREE.Mesh(bGeo,bMat);b2.rotation.z=Math.PI;b1.frustumCulled=b2.frustumCulled=false;mag.add(b1,b2);
+// probe atoms that get stretched into needles
+const PRB=new THREE.Vector3(3.4,.4,2.6),PD=PRB.clone().normalize(),PQ=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),PD);
+const NA=48,at=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.05,1),new THREE.MeshBasicMaterial({color:0xaee6ff}),NA);at.frustumCulled=false;sc.add(at);
+const AO=[];for(let i=0;i<NA;i++){const u=rn()*2-1,a=rn()*6.2832,q=Math.sqrt(1-u*u),R=.1+rn()*.22;AO.push(new THREE.Vector3(Math.cos(a)*q*R,u*R,Math.sin(a)*q*R))}
+const pG=mkSp(0x9fe0ff,1.4,.6);pG.position.copy(PRB);
+const _m=new THREE.Matrix4(),_p=new THREE.Vector3(),_s=new THREE.Vector3();
+// quake: flash, shock shell, ring, burst particles
+const fG=mkSp(0xffffff,1,0);
+const shU={uOp:{value:0}};const shell=new THREE.Mesh(new THREE.SphereGeometry(1,64,40),new THREE.ShaderMaterial({uniforms:shU,transparent:true,blending:ADD,depthWrite:false,side:THREE.DoubleSide,vertexShader:`varying vec3 vN,vV;void main(){vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(position,1.);vV=-mv.xyz;gl_Position=projectionMatrix*mv;}`,
+fragmentShader:`uniform float uOp;varying vec3 vN,vV;void main(){float f=pow(1.-abs(dot(normalize(vN),normalize(vV))),2.2);gl_FragColor=vec4(vec3(.55,.85,1.)*1.4,f*uOp);}`}));shell.visible=false;shell.frustumCulled=false;sc.add(shell);
+const ring=new THREE.Mesh(new THREE.RingGeometry(.94,1,160),new THREE.MeshBasicMaterial({color:0xffa060,transparent:true,opacity:0,blending:ADD,depthWrite:false,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.visible=false;ring.frustumCulled=false;ring.rotation.z=.3;sc.add(ring);
+const buU={uTb:{value:-1},uSp:{value:10}};
+{const N=2600,pos=new Float32Array(N*3),aD=[],aS=[],aSz=[];for(let i=0;i<N;i++){const u=rn()*2-1,a=rn()*6.2832,q=Math.sqrt(1-u*u);aD.push(Math.cos(a)*q,u,Math.sin(a)*q);aS.push(.3+rn()*.7);aSz.push(.05+rn()*.12)}
+const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aD',new THREE.Float32BufferAttribute(aD,3));g.setAttribute('aS',new THREE.Float32BufferAttribute(aS,1));g.setAttribute('aSz',new THREE.Float32BufferAttribute(aSz,1));
+const m=new THREE.Points(g,new THREE.ShaderMaterial({uniforms:buU,transparent:true,blending:ADD,depthWrite:false,vertexShader:`attribute vec3 aD;attribute float aS,aSz;uniform float uTb,uSp;varying float vA;varying vec3 vC;void main(){float tb=max(uTb,0.);vec3 p=aD*(1.1+uSp*aS*tb);vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=min(aSz*2318./-mv.z*(1.+3.*exp(-tb*3.)),70.);vA=(uTb<0.?0.:1.)*smoothstep(0.,.08,tb)*exp(-tb*.32);vC=mix(vec3(1.,.55,.2),vec3(.5,.8,1.),clamp(tb*.25,0.,1.));}`,
+fragmentShader:`varying float vA;varying vec3 vC;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);gl_FragColor=vec4(vC*1.5,a*a*vA);}`}));m.frustumCulled=false;sc.add(m)}
+// Earth (appears for the far-away flare shot)
+const EP=new THREE.Vector3(5,36,-4),dE=EP.length(),eU={uL:{value:EP.clone().negate().normalize()},uFl:{value:0},uT:{value:0}};
+const earth=new THREE.Mesh(new THREE.SphereGeometry(2.4,64,48),new THREE.ShaderMaterial({uniforms:eU,vertexShader:`varying vec3 vP,vW,vV;void main(){vP=position;vW=normalize(mat3(modelMatrix)*normal);vec4 mv=modelViewMatrix*vec4(position,1.);vV=-mv.xyz;gl_Position=projectionMatrix*mv;}`,
+fragmentShader:`uniform vec3 uL;uniform float uFl,uT;varying vec3 vP,vW,vV;${NZ}
+void main(){vec3 N=normalize(vW),V=normalize(vV);float ln=smoothstep(.5,.56,fbm(vP*1.8));float cl=smoothstep(.55,.8,fbm(vP*3.5+vec3(uT*.02)));
+vec3 oc=vec3(.02,.12,.38),la=mix(vec3(.1,.35,.12),vec3(.45,.38,.25),fbm(vP*6.));vec3 sf=mix(oc,la,ln);sf=mix(sf,vec3(1.),cl*.85);
+float d=max(dot(N,uL),0.);vec3 c=sf*(.14+d*1.1);float f=pow(1.-max(dot(N,V),0.),2.5);
+c+=f*vec3(.3,.6,1.)*(.8+d)*(1.+uFl*2.);c+=uFl*vec3(.3,1.,.6)*f*3.+uFl*.3;gl_FragColor=vec4(c,1.);}`}));earth.position.copy(EP);earth.visible=false;sc.add(earth);
+const eG=mkSp(0x4aa0ff,10,.5);eG.position.copy(EP);eG.visible=false;
+// ---------- camera path ----------
+const K=[[0,[0,3,70],[0,0,0]],[S(1),[0,2.2,36],[0,0,0]],[S(3),[9,3.5,15],[0,0,0]],[S(5),[10,6.5,13],[0,.5,0]],[S(7),[-9,4,12],[0,0,0]],[S(8)+.2,[6.2,1.3,6],[3.4,.4,2.6]],[S(9)+.3,[7.5,3,9],[0,0,0]],[S(10)+.8,[15,10,14],[0,0,0]],[S(11)+.2,[12,5,10],[0,0,0]],[S(12)+.1,[2.9,.9,2.6],[0,0,0]],[S(13)+.8,[6,4,9],[0,0,0]],[S(14),[4,16,45],[0,6,0]],[S(15),[0,12,95],[0,14,0]],[S(16),[0,9,80],[0,12,0]],[E,[0,6,62],[0,8,0]]];
+for(let i=1;i<K.length;i++)if(K[i][0]<=K[i-1][0]+.05)K[i][0]=K[i-1][0]+.05;
+const cp=new THREE.CatmullRomCurve3(K.map(k=>new THREE.Vector3(...k[1])),false,'centripetal'),lp=new THREE.CatmullRomCurve3(K.map(k=>new THREE.Vector3(...k[2])),false,'centripetal');
+const ku=t=>{const n=K.length;if(t<=K[0][0])return 0;if(t>=K[n-1][0])return 1;let i=0;while(t>K[i+1][0])i++;return (i+(t-K[i][0])/(K[i+1][0]-K[i][0]))/(n-1)};
+const cap=document.getElementById('cap'),chip=document.getElementById('chip'),fl=document.getElementById('fl');
+const bT=S(12)+.35,hitT=S(15)+1,shSp=(dE-1)/Math.max(.5,hitT-bT);
+window.render=t=>{
+const bt=t-bT,flash=bt>0?Math.exp(-bt*4):0;
+surfU.uT.value=t;fU.uT.value=t;bU.uT.value=t;eU.uT.value=t;
+let reach=9*sm(rp(S(5),S(6)+1.5,t));if(bt>0)reach=Math.max(reach,9+4*Math.exp(-bt*.6));fU.uReach.value=reach;
+fU.uBoost.value=1+1.5*sm(rp(S(9),S(10),t))+(bt>0?2.5*Math.exp(-bt*.8):0);fU.uOp.value=1+(bt>0?1.5*Math.exp(-bt*1.2):0);
+bU.uI.value=(.25+.75*sm(rp(S(8),S(9)+1,t)))*(1+(bt>0?1.2*Math.exp(-bt*.9):0));
+let crack=sm(rp(S(11),S(12)+.2,t));if(bt>0)crack*=1-.6*sm(rp(0,2,bt));surfU.uCrack.value=crack;surfU.uFlash.value=flash*.8;
+spin.rotation.y=t*2.1;core.rotation.y=0;
+const pul=1+.12*Math.sin(t*4.2);gA.material.opacity=Math.min(1,.8*pul+flash);gA.scale.setScalar(6.5*(1+5*flash));gB.scale.setScalar(22*(1+2.5*flash));gB.material.opacity=.38+.5*flash;gC.scale.setScalar(2.8*(1+4*flash)*(.85+.15*pul));
+fG.scale.setScalar(2+40*flash);fG.material.opacity=flash;
+buU.uTb.value=bt;buU.uSp.value=shSp*.9;
+if(bt>0){const R=1+shSp*bt;shell.visible=true;shell.scale.setScalar(R);shU.uOp.value=.8*(1-.75*rp(0,hitT-bT+4,bt))*Math.min(1,bt*6);ring.visible=true;ring.scale.setScalar(1+shSp*1.3*bt);ring.material.opacity=.9*Math.exp(-bt*.5)*Math.min(1,bt*8)}else{shell.visible=false;ring.visible=false}
+// atoms
+const av=sm(rp(S(7)+.2,S(7)+.9,t))*(1-sm(rp(S(9),S(9)+.5,t))),st=1+22*sm(rp(S(8)+.3,S(9)-.2,t));
+at.visible=av>.01;pG.visible=av>.01;pG.material.opacity=.6*av;
+for(let i=0;i<NA;i++){_p.copy(PRB).addScaledVector(AO[i],1);const along=AO[i].dot(PD);_p.addScaledVector(PD,along*(st-1)*.6);_s.set(av/Math.sqrt(st),av*st,av/Math.sqrt(st));_m.compose(_p,PQ,_s);at.setMatrixAt(i,_m)}at.instanceMatrix.needsUpdate=true;
+// Earth
+const es=sm(rp(S(14)-.2,S(14)+.8,t));earth.visible=eG.visible=es>.01;earth.scale.setScalar(Math.max(.001,es));earth.rotation.y=t*.12;eG.scale.setScalar(10*es);
+const fe=t>hitT?Math.exp(-(t-hitT)*1.1):0;eU.uFl.value=fe;eG.material.opacity=(.4+.8*fe)*es;
+// camera
+const u=ku(t);cam.position.copy(cp.getPoint(u));const lk=lp.getPoint(u);
+const sh=(bt>0?.35*Math.exp(-bt*1.5):0)+.04*sm(rp(S(11),bT,t))*(t<bT?1:0);
+cam.position.x+=Math.sin(t*91)*sh;cam.position.y+=Math.sin(t*77+1)*sh;cam.position.z+=Math.sin(t*63+2)*sh*.6;
+cam.lookAt(lk);
+starGroup.rotation.y=t*.004;dust.position.set(0,t*.25,0);dust.position.x=Math.sin(t*.1)*3;
+starMats.forEach((m,i)=>m.opacity=.78+.22*Math.sin(t*(1.7+i)+i*2));
+r.render(sc,cam);
+// captions + hud
+let idx=C.length-1;for(let i=0;i<C.length;i++)if(t<C[i].e){idx=i;break}
+const ch=C[idx],lt=Math.max(0,t-ch.s);
+if(cap.dataset.i!=String(idx)){cap.dataset.i=String(idx);cap.innerHTML=ch.tx.replace(/(magnetar|needles|starquake|Sun|lighthouse)/gi,'<b>$1</b>');const h=HU[idx];chip.textContent=h||'';chip.style.display=h?'block':'none'}
+const o=Math.min(1,lt/.15)*(idx==C.length-1?1:Math.min(1,(ch.d-lt)/.12));cap.style.opacity=o;cap.style.transform='translateY('+((1-o)*24)+'px)';chip.style.opacity=o;
+fl.style.opacity=Math.min(.9,flash*.9);
+};
+window.__ready=true;
+</script></body></html>

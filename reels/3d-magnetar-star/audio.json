@@ -1,0 +1,12 @@
+{
+  "bgm": "bgm/AloneInTheUnlimitedMountains",
+  "bgmVolume": 0.15,
+  "sfx": [
+    { "line": 0, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.5 },
+    { "line": 5, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.3, "dur": 2.5 },
+    { "line": 11, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.45, "dur": 2.0 },
+    { "line": 12, "offset": 0.25, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.75 },
+    { "line": 12, "offset": 0.25, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.5 },
+    { "line": 15, "offset": 1.0, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.3 }
+  ]
+}
