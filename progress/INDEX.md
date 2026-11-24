@@ -7,3 +7,4 @@ Before writing any reel file also read `progress/README.md` (the checkpoint rule
 
 | Job folder | Format | Status | Last step done |
 |---|---|---|---|
+| 2026-11-24-octopus-three-hearts | reel | in-progress | plan and lines saved |
