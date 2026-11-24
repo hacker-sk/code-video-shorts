@@ -1,0 +1,13 @@
+{
+  "_instructions": [
+    "FOR CLAUDE (ignored by render.mjs and mix.mjs, which read only width, height, fps and duration): before writing any file of this reel, open progress/INDEX.md, progress/README.md and progress/REEL_FORMAT.md, and skills/code-video/SKILL.md.",
+    "Create progress/<YYYY-MM-DD>-<reel-name>/ at the start and save STATE, plan, caption lines (TXT), scene design and audio plan there as each step is done, never only at the end. Never write a half-finished reel into reels/<n>/.",
+    "The reel's files are index.html (window.render(t), window.__ready, and the lines written exactly as const TXT=[...];), video.json (this file), audio.json (optional) and post.json (title, description, instagram, thumbnailOffset). Names: letters, numbers, - and _ only. Width and height must be even.",
+    "Write ALL of the reel's files in ONE push_files commit, one reel per commit. That push starts the render and publishes to YouTube Shorts and Instagram Reels. Standing rule from the user: once the files are created, commit right away without waiting for approval. Then mark the job done in progress/INDEX.md and STATE.md.",
+    "Never edit an existing reel's video.json, audio.json or index.html just to add notes: that re-renders and re-posts it. Keep the voice Puck. Keep this _instructions key at the top of every new video.json."
+  ],
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 10
+}
