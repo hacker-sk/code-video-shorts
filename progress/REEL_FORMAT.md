@@ -33,8 +33,8 @@ Write all of a reel's files with ONE `push_files` call (one commit), never one f
 - Keep the Gemini voice Puck in this repo
 - Every video is its own commit/push so it gets its own run (a run with all videos in one failed before)
 - Save progress in `progress/` as each step is done, before writing the final files
-- CONFIRM with the user: whether the "commit right away without waiting for approval" rule given for the Hindi package repo (hacker-sk/stickman-renderer) also applies here
+- Once the reel's files are created, commit them right away with ONE `push_files` call to start the run, without waiting for the user's approval (confirmed by the user on 2026-11-24, same as the Hindi package repo hacker-sk/stickman-renderer)
 
 ## `_instructions` key
 
-Every new `reels/<n>/post.json` starts with an `_instructions` array that reminds Claude: read `progress/INDEX.md`, `progress/README.md` and `progress/REEL_FORMAT.md`, and `skills/code-video/SKILL.md`; save plan, lines, design and audio plan to `progress/` as you go; write all the reel's files in ONE `push_files` commit (index.html, video.json, audio.json, post.json) because that push starts the render and publish; one reel per commit; mark the job done afterwards. Because `post.json` is not a trigger path, adding or changing this key never starts a run by itself.
+Every new `reels/<n>/post.json` starts with an `_instructions` array that reminds Claude: read `progress/INDEX.md`, `progress/README.md` and `progress/REEL_FORMAT.md`, and `skills/code-video/SKILL.md`; save plan, lines, design and audio plan to `progress/` as you go; write all the reel's files in ONE `push_files` commit (index.html, video.json, audio.json, post.json) because that push starts the render and publish, and commit it right away without waiting for approval; one reel per commit; mark the job done afterwards. Because `post.json` is not a trigger path, adding or changing this key never starts a run by itself.
