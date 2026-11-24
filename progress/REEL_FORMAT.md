@@ -39,7 +39,7 @@ Write all of a reel's files with ONE `push_files` call (one commit), never one f
 - Sound: voice + music + sound effects are mixed from `sounds/` (and the "sounds" release zips)
 - Publishing depends on the video: vertical and at most 3 minutes = REEL: YouTube Shorts + Instagram Reels, both through Buffer, 1 minute later. Landscape or longer than 3 minutes = LONG: YouTube through the YouTube Data API only, Instagram through Buffer. `#Shorts` is added to the YouTube text of reels automatically
 - Thumbnail = the frame at `thumbnailOffset` ms (default 2000), so make sure the frame at that moment looks good
-- Failed run: `.github/workflows/retry-failed.yml` re-runs the failed jobs of a failed Make Reel run automatically, after 60 s, at most 2 times (3 attempts in all). Reels that already finished are not repeated, and the voice-over clips are cached, so a retry after a rate limit continues where it stopped. A failure caused by a bug in the reel's own code fails every attempt: read the `[page error]` / error line in the log, fix the file and push the fix (one commit)
+- Failed run: there is no automatic retry. Read the `[page error]` / error line in the log, fix the file and push the fix (one commit), or re-run the failed run by hand. The voice-over clips are cached, so a re-run after a rate limit continues where it stopped
 
 ## Rules the user has stated
 
@@ -49,7 +49,7 @@ Write all of a reel's files with ONE `push_files` call (one commit), never one f
 - Save progress in `progress/` as each step is done, before writing the final files
 - Once the reel's files are created, commit them right away with ONE `push_files` call to start the run, without waiting for the user's approval (confirmed by the user on 2026-11-24, same as the Hindi package repo hacker-sk/stickman-renderer)
 - The `_instructions` key goes in the JSON that is read first, so that it is seen when the package is looked at
-- Failed runs must be restarted automatically (workflow `retry-failed.yml`), and the failure-prevention rules above go into the `_instructions` key of every new reel
+- The failure-prevention rules above go into the `_instructions` key of every new reel. The automatic retry workflow was removed at the user's request on 2026-11-24
 
 ## `_instructions` key
 
@@ -57,4 +57,4 @@ Every new reel's `video.json` starts with an `_instructions` array (and `post.js
 
 Add this item to the array of every new reel (it prevents failed runs):
 
-> "BEFORE PUSHING, check index.html: no top-level const/let/var/function named like a browser global (top, parent, self, window, document, name, status, length, location, history, event, screen, frames, origin, close, stop, open, print, focus, blur, scroll, find) and no duplicate top-level names, because that throws 'Identifier ... has already been declared', window.__ready is never set and the run fails after 60 s. Set window.__ready=true as the last line, load nothing from the network, and keep const TXT=[...]; valid. A failed run is re-run automatically up to 2 times (retry-failed.yml); a code bug fails every attempt, so fix it and push once."
+> "BEFORE PUSHING, check index.html: no top-level const/let/var/function named like a browser global (top, parent, self, window, document, name, status, length, location, history, event, screen, frames, origin, close, stop, open, print, focus, blur, scroll, find) and no duplicate top-level names, because that throws 'Identifier ... has already been declared', window.__ready is never set and the run fails after 60 s. Set window.__ready=true as the last line, load nothing from the network, and keep const TXT=[...]; valid. A code bug fails the run, so fix it and push once."
