@@ -15,8 +15,8 @@
 ## Checklist
 - [x] 1. Plan saved (01_plan.md)
 - [x] 2. Caption lines saved (02_lines.md)
-- [ ] 3. Scene design saved (03_design.md)
-- [ ] 4. Audio plan saved (04_audio.md)
+- [x] 3. Scene design saved (03_design.md)
+- [x] 4. Audio plan saved (04_audio.md)
 - [ ] 5. Finished files written once into reels/octopus-three-hearts/ in ONE commit (starts the run)
 - [ ] 6. Verified started, job marked done
 
@@ -26,4 +26,4 @@
 - video.json starts from progress/_TEMPLATE/video.json (has the _instructions key)
 
 ## Next step
-Write 03_design.md and 04_audio.md, then push the reel files in one commit.
+Write index.html, video.json (with _instructions), post.json into reels/octopus-three-hearts/ in ONE push_files commit, then mark done here and in INDEX.md.
