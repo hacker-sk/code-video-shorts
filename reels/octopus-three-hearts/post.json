@@ -1,0 +1,6 @@
+{
+  "_instructions": "Optional file read by publish.mjs (title, description, instagram, thumbnailOffset in ms). Not a render trigger, so write it in the same commit as the reel's index.html and video.json.",
+  "title": "Octopuses Have 3 Hearts and Blue Blood | Wild Facts",
+  "description": "Octopuses have three hearts: two feed the gills and one feeds the body. Their blood is blue because it carries oxygen with copper, not iron.\n\n#Octopus #WildFacts #AnimalFacts #Shorts",
+  "instagram": "Octopuses have three hearts: two feed the gills, one feeds the body. And their blood is blue, because it uses copper instead of iron to carry oxygen. Follow for more wild facts.\n\n#octopus #wildfacts #animalfacts #oceanlife #reels"
+}
