@@ -1,0 +1,22 @@
+{
+  "bgm": "bgm/AloneInTheUnlimitedMountains",
+  "bgmVolume": 0.15,
+  "sfx": [
+    { "line": 0, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.45 },
+    { "line": 2, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.45, "dur": 2.5 },
+    { "line": 4, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.5, "dur": 2.2 },
+    { "line": 5, "offset": 0.55, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.8 },
+    { "line": 5, "offset": 0.55, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.5 },
+    { "line": 7, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.4, "dur": 2.5 },
+    { "line": 8, "offset": 0.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.35 },
+    { "line": 12, "offset": 1.2, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.4 },
+    { "line": 15, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.5 },
+    { "line": 17, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.35, "dur": 2.2 },
+    { "line": 18, "offset": 0.8, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.6 },
+    { "line": 19, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.4, "dur": 2.2 },
+    { "line": 21, "offset": 1.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.5 },
+    { "line": 21, "offset": 1.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.6 },
+    { "line": 24, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.4 },
+    { "line": 27, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.4, "dur": 2.5 }
+  ]
+}
