@@ -1,0 +1,28 @@
+{
+  "bgm": [
+    { "mood": "mysterious", "fromLine": 0, "toLine": 13, "volume": 0.14 },
+    { "mood": "tense", "fromLine": 14, "toLine": 21, "volume": 0.15 },
+    { "mood": "epic", "fromLine": 22, "toLine": 28, "volume": 0.17 }
+  ],
+  "sfx": [
+    { "line": 0, "sound": "whoosh", "volume": 0.6, "dur": 2 },
+    { "line": 0, "offset": 1.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.8 },
+    { "line": 0, "offset": 1.1, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.45 },
+    { "line": 2, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.35, "dur": 2 },
+    { "line": 9, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.3 },
+    { "line": 12, "offset": 0.4, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.35, "dur": 2.2 },
+    { "line": 13, "offset": 1.2, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.8 },
+    { "line": 13, "offset": 1.2, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.5 },
+    { "line": 15, "sound": "whoosh", "volume": 0.4, "dur": 1.5 },
+    { "line": 19, "offset": 0.5, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.35, "dur": 2.5 },
+    { "line": 22, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.6 },
+    { "line": 23, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.5 },
+    { "line": 24, "offset": 0.2, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.8 },
+    { "line": 24, "offset": 0.2, "sound": "whoosh", "volume": 0.6, "dur": 2 },
+    { "line": 25, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/RISERS/01_RISER", "volume": 0.5, "dur": 5 },
+    { "line": 25, "offset": 5.2, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.7 },
+    { "line": 26, "offset": 0.2, "sound": "sfx/1000+UR.FASTEDITOR SFX/450 cinematic sound effects/Subdrop Low", "volume": 0.9 },
+    { "line": 26, "offset": 0.2, "sound": "whoosh", "volume": 0.7, "dur": 3 },
+    { "line": 27, "offset": 2.0, "sound": "sfx/1000+UR.FASTEDITOR SFX/336 SFX/HITS", "volume": 0.5 }
+  ]
+}
