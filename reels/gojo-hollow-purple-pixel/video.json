@@ -1,0 +1,12 @@
+{
+  "_instructions": [
+    "FOR CLAUDE: read progress/INDEX.md, progress/REEL_FORMAT.md, skills/code-video/SKILL.md before editing.",
+    "Write all reel files in ONE push_files commit. That push starts render+publish.",
+    "BEFORE PUSHING check index.html: no top-level const/let/var/function named like a browser global (top, parent, self, window, document, name, status, length, location, history, event, screen, frames, origin, close, stop, open, print, focus, blur, scroll, find) and no duplicate top-level names.",
+    "Set window.__ready=true as the last line, load nothing from the network, keep const TXT=[...]; valid."
+  ],
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 62
+}
